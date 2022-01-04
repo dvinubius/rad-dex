@@ -9,7 +9,10 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
     let [dx, dy] = [x1 - x2, y1 - y2];
     let norm = Math.sqrt(dx * dx + dy * dy);
     let [udx, udy] = [dx / norm, dy / norm];
-    const size = norm / 7;
+    // const size = norm / 7;
+    const size = 10;
+
+    ctx.lineWidth = 1.25;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
@@ -38,7 +41,7 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
       let maxX = k / (ethReserve / 4);
       let minX = 0;
 
-      const doPlot = addingEth || addingToken;
+      const doPlot = +addingEth || +addingToken;
 
       if (doPlot) {
         maxX = k / (ethReserve * 0.4);
@@ -56,8 +59,8 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
       const plotY = y => {
         return height - ((y - minY) / (maxY - minY)) * height;
       };
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#000000";
+      ctx.strokeStyle = "#111";
+      ctx.fillStyle = "#111";
 
       ctx.font = textSize + "px Arial";
       // +Y axis
@@ -72,8 +75,8 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
       ctx.stroke();
 
       ctx.lineWidth = 2;
-      ctx.strokeStyle = doPlot ? "#111111" : "#dddddd";
-      ctx.fillStyle = doPlot ? "#111111" : "#dddddd";
+      ctx.strokeStyle = doPlot ? "hsla(328, 100%, 54%, 0.5)" : "#dddddd";
+      ctx.fillStyle = doPlot ? "hsla(328, 100%, 54%, 0.5)" : "#dddddd";
 
       ctx.beginPath();
       let first = true;
@@ -93,12 +96,12 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
       ctx.lineWidth = 1;
 
       const plotColor = "#111111";
-      const startColor = doPlot ? "#0000FF" : "#dddddd";
-      const destinationColor = "#bbbbbb";
-      const arrowHorizontalColor = "#009900";
-      const arrowVerticalColor = "#990000";
+      const startColor = doPlot ? "hsla(328, 100%, 54%, 1)" : "#dddddd";
+      const destinationColor = "#hsla(328, 10%, 54%, 0.2)";
+      const arrowHorizontalColor = "#880088";
+      const arrowVerticalColor = "#880088";
 
-      if (addingEth) {
+      if (+addingEth) {
         let newEthReserve = ethReserve + parseFloat(addingEth);
 
         ctx.fillStyle = destinationColor;
@@ -122,7 +125,7 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
           plotX(newEthReserve) + textSize,
           plotY(k / newEthReserve),
         );
-      } else if (addingToken) {
+      } else if (+addingToken) {
         let newTokenReserve = tokenReserve + parseFloat(addingToken);
 
         ctx.fillStyle = destinationColor;
@@ -161,8 +164,17 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
     <div style={{ padding: "2rem", background: curveGradient, border: "1px solid #f3f3f3" }}>
       <div style={{ position: "relative", width: width, height: height }}>
         <canvas style={{ position: "absolute", left: 0, top: 0 }} ref={ref} width={width} height={height} />
-        <div style={{ display: "flex", alignItems: "center", position: "absolute", left: "20%", bottom: -20 }}>
-          <div style={{ marginRight: "0.5rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: "-1.5rem",
+          }}
+        >
+          <div style={{ marginRight: "1rem", transform: "scaleX(2)" }}>
             <LineOutlined />
           </div>
           ETH Reserve{" "}
@@ -175,16 +187,16 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
             display: "flex",
             alignItems: "center",
             position: "absolute",
-            left: -20,
-            bottom: "20%",
-            transform: "rotate(-90deg)",
+            left: "-1.5rem",
+            bottom: "50%",
+            transform: "rotate(-90deg) translateX(-50%)",
             transformOrigin: "0 0",
           }}
         >
-          <div style={{ marginRight: "0.5rem" }}>
+          <div style={{ marginRight: "1rem", transform: "scaleX(2)" }}>
             <LineOutlined />
           </div>
-          Token Reserve{" "}
+          SRT Reserve{" "}
           <div style={{ transform: "scaleX(2) translateX(50%)" }}>
             <ArrowRightOutlined />
           </div>
