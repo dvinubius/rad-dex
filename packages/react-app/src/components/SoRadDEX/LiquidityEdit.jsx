@@ -1,113 +1,337 @@
-import { useEffect, useState } from "react";
-import { Input, Row, Col, Divider } from "antd";
-import { softTextCol } from "../../styles";
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Input } from "antd";
+import { errorCol, softTextCol } from "../../styles";
+import { useContractLoader, useContractReader } from "eth-hooks";
+import CustomBalance from "../CustomKit/CustomBalance";
 const { ethers } = require("ethers");
 
-const contractName = "SoRadDEX";
-const tokenName = "SoRadToken";
-
 const LiquidityEdit = ({
-  userAddress,
+  dexApproval,
   readContracts,
   writeContracts,
   localProvider,
+  contractConfig,
   tx,
-  dexEthReserve,
-  dexTokenReserve,
+  userLiquidity,
+  dexEthBalance,
+  dexTokenBalance,
+  userEthBalance,
+  userTokenBalance,
+  userSigner,
+  gasPrice,
 }) => {
-  const [values, setValues] = useState({});
-  const [isDepositAmountApproved, setIsDepositAmountApproved] = useState();
-  // useEffect(() => {
-  //   if (!values) {
-  //     setIsSellAmountApproved(false);
-  //     return;
-  //   }
+  const [depositFormAmount, setDepositFormAmount] = useState(); // text
+  const [withdrawFormAmount, setWithdrawFormAmount] = useState(); // text
+  const [depositValue, setDepositValue] = useState(); // bn
+  const [withdrawValue, setWithdrawValue] = useState(); // bn
 
-  //   console.log("tokenFormAmount", tokenFormAmount);
-  //   const tokenFormAmountBN = tokenFormAmount && ethers.utils.parseEther("" + tokenFormAmount);
-  //   console.log("tokenFormAmountBN", tokenFormAmountBN);
-  //   setIsSellAmountApproved(dexApproval && tokenFormAmount && dexApproval.gte(tokenFormAmountBN));
-  // }, [tokenFormAmount, readContracts, dexApproval]);
-  // console.log("isSellAmountApproved", isSellAmountApproved);
+  const [amountErrorDeposit, setAmountErrorDeposit] = useState(); // error message
+  const [amountErrorWithdraw, setAmountErrorWithdraw] = useState(); // error message
+  const [isExecutingDeposit, setIsExecutingDeposit] = useState(false); // for button state
+  const [isExecutingWithdraw, setIsExecutingWithdraw] = useState(false); // for button state
 
-  const rowForm = (title, icon, onClick) => {
+  const [isDepositTransferApproved, setIsDepositTransferApproved] = useState();
+
+  useEffect(() => {
+    const canCalculate = depositValue && dexApproval && dexTokenBalance && dexEthBalance;
+    if (!canCalculate) {
+      setIsDepositTransferApproved(false);
+      return;
+    }
+    const expectedTokenAmount = depositValue.mul(dexTokenBalance).div(dexEthBalance);
+    setIsDepositTransferApproved(dexApproval.gte(expectedTokenAmount));
+  }, [depositValue, dexApproval, dexTokenBalance, dexEthBalance]);
+
+  const hasValidDepositAmount = depositValue && depositValue.gt("0");
+  const depositAllowed = depositValue && depositValue.gt("0");
+  const withdrawAllowed = withdrawValue && withdrawValue.gt("0");
+
+  const contracts = useContractLoader(localProvider, contractConfig);
+
+  const dex = useMemo(() => {
+    const { SoRadDEX } = contracts;
+    return SoRadDEX && new ethers.Contract(SoRadDEX.address, SoRadDEX.interface, localProvider);
+  }, [contractConfig, localProvider, contracts]);
+
+  const [gasEstimateBuy, setGasEstimateBuy] = useState();
+  const maxEthSpendable = userEthBalance && gasEstimateBuy && userEthBalance.sub(gasEstimateBuy);
+
+  useEffect(() => {
+    if (!dex || !gasPrice) return;
+    const getEst = async () => {
+      let est;
+      try {
+        est = await dex.connect(userSigner).estimateGas.deposit({ value: userEthBalance });
+        console.log("estimated gas: ", est.toString());
+      } catch (e) {
+        console.log("failed gas estimation");
+        est = "0";
+      }
+      const gasCostEstimate = ethers.BigNumber.from(gasPrice).mul(est);
+      setGasEstimateBuy(gasCostEstimate);
+      console.log("estimated gas cost: ", ethers.utils.formatEther(gasCostEstimate.toString()).toString());
+    };
+    getEst();
+  }, [userEthBalance, gasPrice, dex]);
+
+  // HACKY HACKY UPDATE
+
+  const [, updateState] = React.useState();
+  const forceUpdate = React.useCallback(() => updateState({}), []);
+
+  const readyAll =
+    dexEthBalance &&
+    dexTokenBalance &&
+    dexApproval &&
+    userTokenBalance &&
+    userEthBalance &&
+    userLiquidity &&
+    maxEthSpendable;
+  debugger;
+
+  // =========== PIECES =========== //
+
+  const _updateDepositInput = ethAmount => {
+    // NUMERIC VALIDITY
+    if (ethAmount.length > 22) return;
+    let ethValue = +ethAmount;
+    if (isNaN(ethValue)) {
+      return;
+    }
+    setDepositFormAmount(ethAmount);
+    // VALUE VALIDITY
+    if (ethValue === 0) {
+      setAmountErrorDeposit(null);
+      setDepositValue(null);
+      return;
+    }
+    const withPrecision = Math.round(ethValue * 10 ** 5);
+    ethValue = ethers.BigNumber.from(withPrecision)
+      .mul(ethers.utils.parseEther("1"))
+      .div(10 ** 5);
+    if (ethValue.lt("0")) {
+      setAmountErrorDeposit("Invalid Input");
+      setDepositValue(null);
+      return;
+    }
+    if (ethValue.gt(userEthBalance)) {
+      setAmountErrorDeposit("You have insufficient ETH");
+      setDepositValue(null);
+      return;
+    }
+    const expectedTokenAmount = ethValue.mul(dexTokenBalance).div(dexEthBalance);
+    if (expectedTokenAmount.gt(userTokenBalance)) {
+      setAmountErrorDeposit("You have insufficient SRT");
+      setDepositValue(null);
+      return;
+    }
+
+    setDepositValue(ethValue);
+    setAmountErrorDeposit(null);
+  };
+
+  const _updateWithdrawInput = withdrawAmount => {
+    // NUMERIC VALIDITY
+    if (withdrawAmount.length > 22) return;
+    let withdrawValue = +withdrawAmount;
+    if (isNaN(withdrawValue)) {
+      return;
+    }
+
+    setWithdrawFormAmount(withdrawAmount);
+    // VALUE VALIDITY
+    if (withdrawValue === 0) {
+      setWithdrawValue(null);
+      setAmountErrorWithdraw(null);
+      return;
+    }
+    const withPrecision = Math.round(withdrawValue * 10 ** 5);
+    withdrawValue = ethers.BigNumber.from(withPrecision)
+      .mul(ethers.utils.parseEther("1"))
+      .div(10 ** 5);
+    if (withdrawValue.lt("0")) {
+      setAmountErrorWithdraw("Invalid Input");
+      setWithdrawValue(null);
+      return;
+    }
+    if (withdrawValue.gt(userLiquidity)) {
+      setAmountErrorWithdraw("You have insufficient liquidity");
+      setWithdrawValue(null);
+      return;
+    }
+
+    setWithdrawValue(withdrawValue);
+    setAmountErrorWithdraw(null);
+  };
+
+  const applyMaxDepositAmount = () => {
+    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(maxEthSpendable), 2);
+    _updateDepositInput(ethAmount);
+  };
+
+  const applyMaxWithdrawAmount = () => {
+    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(userEthLiquidity), 2);
+    _updateWithdrawInput(ethAmount);
+  };
+
+  const _resetAfterExecute = () => {
+    setIsExecutingDeposit(false);
+    setIsExecutingWithdraw(false);
+    setDepositFormAmount("");
+    setWithdrawFormAmount("");
+    setWithdrawValue(null);
+    setDepositValue(null);
+    forceUpdate();
+  };
+
+  const liquidityInput = type => (
+    <Input
+      // size="large"
+      style={{ textAlign: "left" }}
+      prefix={<span style={{ marginRight: "0.5rem" }}>Ξ</span>}
+      suffix={
+        <span
+          style={{
+            color: softTextCol,
+            marginRight: "0.5rem",
+            cursor: "pointer",
+            transition: "opacity 0.1s ease-out",
+          }}
+          onClick={type === "deposit" ? applyMaxDepositAmount : applyMaxWithdrawAmount}
+        >
+          max{" "}
+          <CustomBalance
+            noClick
+            etherMode={false}
+            customSymbol=""
+            size={16}
+            padding={0}
+            balance={type === "deposit" ? maxEthSpendable : userLiquidity}
+          />
+        </span>
+      }
+      value={type === "deposit" ? depositFormAmount : withdrawFormAmount}
+      onChange={
+        type === "deposit" ? e => _updateDepositInput(e.target.value) : e => _updateWithdrawInput(e.target.value)
+      }
+      onPaste={e => e.preventDefault()}
+    />
+  );
+
+  const liquidityInputButton = type => {
+    const needTransferApproval = isDepositTransferApproved || !hasValidDepositAmount;
+    const buttonText = type === "deposit" ? (needTransferApproval ? "Deposit" : "Approve") : "Withdraw";
+    const buttonAction =
+      type === "deposit" ? (needTransferApproval ? approveDepositTransfer : executeDeposit) : executeWithdraw;
     return (
-      <Row>
-        <Col span={16}>
-          <div style={{ cursor: "pointer", margin: 2 }}>
-            <Input
-              onChange={e => {
-                let newValues = { ...values };
-                newValues[title] = e.target.value;
-                setValues(newValues);
-              }}
-              value={values[title]}
-              addonAfter={
-                <div
-                  type="default"
-                  onClick={() => {
-                    onClick(values[title]);
-                    let newValues = { ...values };
-                    newValues[title] = "";
-                    setValues(newValues);
-                  }}
-                >
-                  {icon}
-                </div>
-              }
-            />
-          </div>
-        </Col>
-      </Row>
+      <Button
+        style={{ width: "9rem" }}
+        type={"primary"}
+        // size="large"
+        disabled={type === "deposit" ? !depositAllowed : !withdrawAllowed}
+        loading={type === "deposit" ? isExecutingDeposit : isExecutingWithdraw}
+        onClick={buttonAction}
+      >
+        {buttonText}
+      </Button>
     );
   };
 
-  const depositForm = rowForm("deposit", "Deposit", async value => {
-    let valueInEther = ethers.utils.parseEther("" + value);
-    let valuePlusExtra = ethers.utils.parseEther("" + value * 1.03);
-    console.log("valuePlusExtra", valuePlusExtra);
-    debugger;
-    let allowance = await readContracts[tokenName].allowance(userAddress, readContracts[contractName].address);
-    console.log("allowance", allowance);
-    debugger;
-    let nonce = await localProvider.getTransactionCount(userAddress);
-    console.log("nonce", nonce);
-    let approveTx;
-    if (allowance.lt(valuePlusExtra)) {
-      debugger;
-      approveTx = tx(
-        writeContracts[tokenName].approve(readContracts[contractName].address, valuePlusExtra, {
-          gasLimit: 200000,
-          nonce: nonce++,
-        }),
-      );
-      console.log("approve tx is in, not waiting on it though...", approveTx);
-    }
-    let depositTx = writeContracts[contractName]["deposit"]({
-      from: userAddress,
-      value: valueInEther,
-      gasLimit: 200000,
-      nonce: nonce++,
-    });
-    if (approveTx) {
-      console.log("waiting on approve to finish...");
-      let approveTxResult = await approveTx;
-      console.log("approveTxResult:", approveTxResult);
-    }
-    let depositTxResult = await depositTx;
-    console.log("depositTxResult:", depositTxResult);
-  });
+  const liquidityInputError = type => {
+    const error = type === "deposit" ? amountErrorDeposit : amountErrorWithdraw;
+    if (!error) return <></>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          justifyContent: "space-between",
+          gap: "0.5rem",
+        }}
+      >
+        {error && (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+            <div style={{ color: errorCol }}>{error}</div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
-  const withdrawForm = rowForm("withdraw", "Withdraw", async value => {
-    let valueInEther = ethers.utils.parseEther("" + value);
-    let withdrawTxResult = writeContracts[contractName]["withdraw"](valueInEther, { from: userAddress });
-    console.log("withdrawTxResult:", withdrawTxResult);
-  });
+  const liquidityForm = type => {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "stretch" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          {liquidityInput(type)}
+          {liquidityInputButton(type)}
+        </div>
+        {liquidityInputError(type)}
+      </div>
+    );
+  };
+
+  const approveDepositTransfer = async () => {
+    setIsExecutingDeposit(true);
+
+    const expectedTokenAmount = depositValue.mul(dexTokenBalance).div(dexEthBalance);
+
+    await tx(writeContracts.SoRadToken.approve(readContracts.SoRadDEX.address, expectedTokenAmount), update => {
+      if (update && (update.error || update.reason)) {
+        setIsExecutingDeposit(false);
+      }
+      if (update && (update.status === "confirmed" || update.status === 1)) {
+        setIsExecutingDeposit(false);
+        forceUpdate();
+      }
+      if (update && update.code) {
+        // metamask error etc.
+        setIsExecutingDeposit(false);
+      }
+    });
+  };
+
+  const executeDeposit = async () => {
+    setIsExecutingDeposit(true);
+
+    await tx(writeContracts.SoRadDEX.deposit({ value: depositValue }), update => {
+      if (update && (update.error || update.reason)) {
+        setIsExecutingDeposit(false);
+      }
+      if (update && (update.status === "confirmed" || update.status === 1)) {
+        _resetAfterExecute();
+      }
+      if (update && update.code) {
+        // metamask error etc.
+        setIsExecutingDeposit(false);
+      }
+    });
+  };
+
+  const executeWithdraw = async () => {
+    setIsExecutingWithdraw(true);
+
+    await tx(writeContracts.SoRadDEX.withdraw({ value: withdrawValue }), update => {
+      if (update && (update.error || update.reason)) {
+        setIsExecutingWithdraw(false);
+      }
+      if (update && (update.status === "confirmed" || update.status === 1)) {
+        _resetAfterExecute();
+      }
+      if (update && update.code) {
+        // metamask error etc.
+        setIsExecutingWithdraw(false);
+      }
+    });
+  };
 
   return (
-    <div style={{ width: "22rem", margin: "2rem auto 0" }}>
-      {depositForm}
-      {withdrawForm}
+    <div style={{ width: "26rem", margin: "1rem auto 0" }}>
+      {readyAll && (
+        <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column" }}>
+          {liquidityForm("deposit")}
+          {liquidityForm("withdraw")}
+        </div>
+      )}
     </div>
   );
 };

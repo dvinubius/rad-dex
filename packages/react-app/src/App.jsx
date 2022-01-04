@@ -345,25 +345,36 @@ function App(props) {
       <ThemeSwitch />
 
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
-      <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }} className="hud hudTop">
-        <div style={{ marginRight: 20 }}>
-          <NetworkSwitch
-            networkOptions={networkOptions}
-            selectedNetwork={selectedNetwork}
-            setSelectedNetwork={setSelectedNetwork}
+      <div
+        style={{
+          position: "fixed",
+          textAlign: "right",
+          right: 0,
+          top: 0,
+          padding: 10,
+        }}
+        className="hud hudTop"
+      >
+        <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
+          <div style={{ marginRight: 20 }}>
+            <NetworkSwitch
+              networkOptions={networkOptions}
+              selectedNetwork={selectedNetwork}
+              setSelectedNetwork={setSelectedNetwork}
+            />
+          </div>
+          <Account
+            address={address}
+            localProvider={localProvider}
+            userSigner={userSigner}
+            mainnetProvider={mainnetProvider}
+            price={price}
+            web3Modal={web3Modal}
+            loadWeb3Modal={loadWeb3Modal}
+            logoutOfWeb3Modal={logoutOfWeb3Modal}
+            blockExplorer={blockExplorer}
           />
         </div>
-        <Account
-          address={address}
-          localProvider={localProvider}
-          userSigner={userSigner}
-          mainnetProvider={mainnetProvider}
-          price={price}
-          web3Modal={web3Modal}
-          loadWeb3Modal={loadWeb3Modal}
-          logoutOfWeb3Modal={logoutOfWeb3Modal}
-          blockExplorer={blockExplorer}
-        />
         <FaucetHint localProvider={localProvider} targetNetwork={targetNetwork} address={address} />
       </div>
 

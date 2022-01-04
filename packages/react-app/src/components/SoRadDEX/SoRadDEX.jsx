@@ -202,10 +202,7 @@ const SoRadDEX = ({
 
     setSwapInValue(tokenValue);
     setAmountError(null);
-
     updateTokenInput(tokenAmount);
-    const tokenSpendValue = tokenAmount ? ethers.utils.parseEther(tokenAmount) : null;
-    setSwapInValue(tokenSpendValue);
   };
 
   const applyMaxEthAmount = () => {
@@ -487,13 +484,18 @@ const SoRadDEX = ({
               <Liquidity
                 totalLiquidity={totalLiquidity}
                 userLiquidity={userLiquidity}
+                dexApproval={dexApproval}
                 tokenBalance={dexTokenBalance}
                 ethBalance={dexETHBalance}
                 readContracts={readContracts}
                 localProvider={localProvider}
                 writeContracts={writeContracts}
-                userAddress={userAddress}
                 tx={tx}
+                contractConfig={contractConfig}
+                userEthBalance={userEthBalance}
+                userTokenBalance={userTokenBalance}
+                userSigner={userSigner}
+                gasPrice={gasPrice}
               />
             </div>
           </div>

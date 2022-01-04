@@ -1,10 +1,10 @@
 import { Button, Tabs, Row, Col, Descriptions, Divider, Input } from "antd";
 import React, { useState } from "react";
-import { primaryCol, softTextCol } from "../../styles";
+import { primaryCol, softBg, softTextCol } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 import LiquidityEdit from "./LiquidityEdit";
 import "./Liquidity.css";
-import { DownOutlined, MinusCircleOutlined, MinusOutlined, PlusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownOutlined } from "@ant-design/icons";
 
 const Liquidity = ({
   tokenBalance,
@@ -14,8 +14,13 @@ const Liquidity = ({
   readContracts,
   localProvider,
   writeContracts,
-  userAddress,
   tx,
+  contractConfig,
+  userEthBalance,
+  userTokenBalance,
+  userSigner,
+  gasPrice,
+  dexApproval,
 }) => {
   const valuesColor = "deeppink";
   const mineColor = primaryCol;
@@ -117,37 +122,40 @@ const Liquidity = ({
             ))}
           </Descriptions>
           <div
-            style={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center", marginTop: "1rem" }}
+            style={{
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              marginTop: "1rem",
+              marginLeft: "auto",
+              width: "7rem",
+              color: softTextCol,
+              borderRadius: "0.25rem",
+              background: softBg,
+            }}
           >
+            <div style={{ textAlign: "center", flexGrow: 1 }}>Manage</div>
             <Button
-              size="large"
               type="default"
               style={{
-                // width: "12rem",
-                width: "7rem",
-                marginLeft: "auto",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "0.5rem",
-                // fontSize: "1.25rem",
                 color: softTextCol,
+                padding: "0.5rem",
               }}
               onClick={toggleDepositsVisibility}
             >
-              {/* <div style={{ marginRight: "1rem" }}>📥</div> */}
-              Manage
-              {/* <PlusCircleOutlined /> <div style={{ transform: "translateY(-0.1rem)" }}>/</div> <MinusCircleOutlined /> */}
               <div
                 style={{
-                  fontSize: "1rem",
                   transition: "all 0.3s ease-out",
                   transform: depositsHeight === 0 ? "translateY(0.05rem)" : "rotateX(180deg) translateY(0.05rem)",
                 }}
               >
                 <DownOutlined />
               </div>
-              {/* <div style={{ marginLeft: "1rem" }}>📤</div> */}
             </Button>
           </div>
         </div>
@@ -155,13 +163,19 @@ const Liquidity = ({
 
       <div style={{ maxHeight: depositsHeight, overflow: "hidden", transition: "all 0.3s ease-out" }}>
         <LiquidityEdit
-          userAddress={userAddress}
+          dexApproval={dexApproval}
           localProvider={localProvider}
           readContracts={readContracts}
           writeContracts={writeContracts}
-          dexEthReserve={ethBalance}
-          dexTokenReserve={tokenBalance}
+          contractConfig={contractConfig}
           tx={tx}
+          userLiquidity={userLiquidity}
+          dexEthBalance={ethBalance}
+          dexTokenBalance={tokenBalance}
+          userEthBalance={userEthBalance}
+          userTokenBalance={userTokenBalance}
+          userSigner={userSigner}
+          gasPrice={gasPrice}
         />
       </div>
     </div>

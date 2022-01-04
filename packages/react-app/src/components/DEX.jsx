@@ -46,7 +46,7 @@ export default function DEX({
   const [addingToken, setAddingToken] = useState();
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2rem" }}>
+    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start", gap: "2rem" }}>
       <SoRadDEX
         localProvider={localProvider}
         contractConfig={contractConfig}
@@ -67,14 +67,14 @@ export default function DEX({
         updateEthInput={setAddingEth}
         updateTokenInput={setAddingToken}
       />
-      <div style={{ padding: "0 2rem" }}>
+      <div style={{ alignSelf: "flex-start" }}>
         <Curve
           addingEth={addingEth}
           addingToken={addingToken}
           ethReserve={dexEthBalanceFloat}
           tokenReserve={dexTokenBalanceFloat}
-          width={400}
-          height={400}
+          width={490}
+          height={490}
         />
       </div>
     </div>

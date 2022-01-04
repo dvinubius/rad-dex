@@ -1,5 +1,6 @@
 import { ArrowRightOutlined, LineOutlined } from "@ant-design/icons";
 import React, { useRef, useEffect } from "react";
+import { curveGradient, swapGradient } from "../styles";
 
 export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve, width, height }) {
   let ref = useRef();
@@ -157,34 +158,36 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
   }, [addingEth, addingToken, ethReserve, tokenReserve]);
 
   return (
-    <div style={{ position: "relative", width: width, height: height }}>
-      <canvas style={{ position: "absolute", left: 0, top: 0 }} ref={ref} width={width} height={height} />
-      <div style={{ display: "flex", alignItems: "center", position: "absolute", left: "20%", bottom: -20 }}>
-        <div style={{ marginRight: "0.5rem" }}>
-          <LineOutlined />
+    <div style={{ padding: "2rem", background: curveGradient, border: "1px solid #f3f3f3" }}>
+      <div style={{ position: "relative", width: width, height: height }}>
+        <canvas style={{ position: "absolute", left: 0, top: 0 }} ref={ref} width={width} height={height} />
+        <div style={{ display: "flex", alignItems: "center", position: "absolute", left: "20%", bottom: -20 }}>
+          <div style={{ marginRight: "0.5rem" }}>
+            <LineOutlined />
+          </div>
+          ETH Reserve{" "}
+          <div style={{ transform: "scaleX(2) translateX(50%)" }}>
+            <ArrowRightOutlined />
+          </div>
         </div>
-        ETH Reserve{" "}
-        <div style={{ transform: "scaleX(2) translateX(50%)" }}>
-          <ArrowRightOutlined />
-        </div>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          position: "absolute",
-          left: -20,
-          bottom: "20%",
-          transform: "rotate(-90deg)",
-          transformOrigin: "0 0",
-        }}
-      >
-        <div style={{ marginRight: "0.5rem" }}>
-          <LineOutlined />
-        </div>
-        Token Reserve{" "}
-        <div style={{ transform: "scaleX(2) translateX(50%)" }}>
-          <ArrowRightOutlined />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            position: "absolute",
+            left: -20,
+            bottom: "20%",
+            transform: "rotate(-90deg)",
+            transformOrigin: "0 0",
+          }}
+        >
+          <div style={{ marginRight: "0.5rem" }}>
+            <LineOutlined />
+          </div>
+          Token Reserve{" "}
+          <div style={{ transform: "scaleX(2) translateX(50%)" }}>
+            <ArrowRightOutlined />
+          </div>
         </div>
       </div>
     </div>
