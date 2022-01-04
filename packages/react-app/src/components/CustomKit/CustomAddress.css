@@ -1,0 +1,7 @@
+.CustomAddress a {
+  cursor: default !important;
+}
+
+.CustomAddress .anticon-copy {
+  cursor: pointer !important;
+}

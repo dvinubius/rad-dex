@@ -1,0 +1,11 @@
+.Liquidity .ant-descriptions-bordered.ant-descriptions-small .ant-descriptions-item-label,
+.Liquidity .ant-descriptions-bordered.ant-descriptions-small .ant-descriptions-item-content {
+  padding: 0.25rem 1rem;
+}
+
+.Liquidity .ant-descriptions-bordered.ant-descriptions-small .ant-descriptions-item-label {
+  width: 5rem;
+}
+.Liquidity .ant-descriptions-bordered.ant-descriptions-small .ant-descriptions-item-content {
+  width: 7rem;
+}

@@ -1,0 +1,33 @@
+.SoRadDEX .ant-tabs-tab {
+  padding: 0 0 6px !important;
+}
+
+.SoRadDEX .SwapArrow {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -0.4rem);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.875rem;
+  color: #a9a9a9;
+  border: 1px solid #d9d9d9;
+  background-color: white;
+  border-radius: 50%;
+  z-index: 100;
+  cursor: pointer;
+  transition: all 0.1s ease-out;
+  user-select: none;
+}
+
+.SoRadDEX .SwapArrow:hover {
+  border-color: rgba(255, 20, 147, 0.5);
+  color: rgba(255, 20, 147, 0.5);
+}
+
+.SoRadDEX .ant-input-affix-wrapper-disabled {
+  background-color: #fdfdfd;
+}

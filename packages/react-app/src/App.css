@@ -1,0 +1,34 @@
+.App {
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.AppScroller {
+  flex: 1;
+  overflow-y: scroll;
+  padding-bottom: 10rem;
+}
+.AppCenteredCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.hud {
+  --glassColor: hsla(209deg, 100%, 55%, 0.1);
+  background-color: var(--glassColor);
+  backdrop-filter: blur(2px);
+  border: 1px solid hsla(0deg, 0%, 50%, 0.2);
+}
+
+.hudBottom {
+  border-left: none;
+}
+
+.hudTop {
+  border-top: none;
+  border-right: none;
+}

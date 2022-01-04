@@ -1,0 +1,10 @@
+.FlexCardCol .ant-card {
+  display: flex;
+  flex-direction: column;
+}
+.FlexCardCol .ant-card-body {
+  flex-grow: 1;
+}
+.FlexCardCol .ant-card-body > div {
+  height: 100%;
+}
