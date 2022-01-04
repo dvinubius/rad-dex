@@ -170,6 +170,7 @@ const Liquidity = ({
           contractConfig={contractConfig}
           tx={tx}
           userLiquidity={userLiquidity}
+          dexLiquidity={totalLiquidity}
           dexEthBalance={ethBalance}
           dexTokenBalance={tokenBalance}
           userEthBalance={userEthBalance}

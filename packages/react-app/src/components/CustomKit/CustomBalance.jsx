@@ -15,6 +15,9 @@ const { utils } = require("ethers");
 export default function CustomBalance(props) {
   const [dollarMode, setDollarMode] = useState(!props.etherMode);
 
+  const dollarDecimals = props.decimals ?? 2;
+  const ethDecimals = props.decimals ?? 4;
+
   const balance = useBalance(props.provider, props.address);
   let floatBalance = parseFloat("0.00");
   let usingBalance = balance;
@@ -24,17 +27,17 @@ export default function CustomBalance(props) {
 
   if (usingBalance) {
     const etherBalance = utils.formatEther(usingBalance);
-    parseFloat(etherBalance).toFixed(2);
+    parseFloat(etherBalance).toFixed(dollarDecimals);
     floatBalance = parseFloat(etherBalance);
   }
 
-  let displayBalance = exactFloatToFixed(floatBalance, 4);
+  let displayBalance = exactFloatToFixed(floatBalance, ethDecimals);
 
   const price = props.price || props.dollarMultiplier || 1;
   const cursorType = !props.noClick ? "pointer" : "";
 
   if (dollarMode) {
-    displayBalance = "$" + exactFloatToFixed(floatBalance * price, 2);
+    displayBalance = "$" + exactFloatToFixed(floatBalance * price, dollarDecimals);
   } else {
     displayBalance = "Ξ" + displayBalance;
   }

@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Button, Input } from "antd";
-import { errorCol, softTextCol } from "../../styles";
+import { errorCol, primaryCol, softTextCol } from "../../styles";
 import { useContractLoader, useContractReader } from "eth-hooks";
 import CustomBalance from "../CustomKit/CustomBalance";
+import { exactFloatToFixed } from "../../helpers/numeric";
+import { calcExpectedWithdrawOutput, expectedTokenAmountForDeposit, maxDepositableEth } from "./LiquidityUtils";
 const { ethers } = require("ethers");
 
 const LiquidityEdit = ({
@@ -13,6 +15,7 @@ const LiquidityEdit = ({
   contractConfig,
   tx,
   userLiquidity,
+  dexLiquidity,
   dexEthBalance,
   dexTokenBalance,
   userEthBalance,
@@ -24,6 +27,13 @@ const LiquidityEdit = ({
   const [withdrawFormAmount, setWithdrawFormAmount] = useState(); // text
   const [depositValue, setDepositValue] = useState(); // bn
   const [withdrawValue, setWithdrawValue] = useState(); // bn
+
+  const expectedWithdrawOutput =
+    withdrawValue &&
+    dexEthBalance &&
+    dexTokenBalance &&
+    dexLiquidity &&
+    calcExpectedWithdrawOutput(withdrawValue, dexEthBalance, dexTokenBalance, dexLiquidity);
 
   const [amountErrorDeposit, setAmountErrorDeposit] = useState(); // error message
   const [amountErrorWithdraw, setAmountErrorWithdraw] = useState(); // error message
@@ -38,7 +48,7 @@ const LiquidityEdit = ({
       setIsDepositTransferApproved(false);
       return;
     }
-    const expectedTokenAmount = depositValue.mul(dexTokenBalance).div(dexEthBalance);
+    const expectedTokenAmount = expectedTokenAmountForDeposit(depositValue, dexTokenBalance, dexEthBalance);
     setIsDepositTransferApproved(dexApproval.gte(expectedTokenAmount));
   }, [depositValue, dexApproval, dexTokenBalance, dexEthBalance]);
 
@@ -53,8 +63,14 @@ const LiquidityEdit = ({
     return SoRadDEX && new ethers.Contract(SoRadDEX.address, SoRadDEX.interface, localProvider);
   }, [contractConfig, localProvider, contracts]);
 
-  const [gasEstimateBuy, setGasEstimateBuy] = useState();
-  const maxEthSpendable = userEthBalance && gasEstimateBuy && userEthBalance.sub(gasEstimateBuy);
+  const [gasEstimateDeposit, setGasEstimateDeposit] = useState();
+  const maxEthDepositable = maxDepositableEth(
+    userEthBalance,
+    gasEstimateDeposit,
+    userTokenBalance,
+    dexTokenBalance,
+    dexEthBalance,
+  );
 
   useEffect(() => {
     if (!dex || !gasPrice) return;
@@ -68,7 +84,7 @@ const LiquidityEdit = ({
         est = "0";
       }
       const gasCostEstimate = ethers.BigNumber.from(gasPrice).mul(est);
-      setGasEstimateBuy(gasCostEstimate);
+      setGasEstimateDeposit(gasCostEstimate);
       console.log("estimated gas cost: ", ethers.utils.formatEther(gasCostEstimate.toString()).toString());
     };
     getEst();
@@ -86,8 +102,7 @@ const LiquidityEdit = ({
     userTokenBalance &&
     userEthBalance &&
     userLiquidity &&
-    maxEthSpendable;
-  debugger;
+    maxEthDepositable;
 
   // =========== PIECES =========== //
 
@@ -119,7 +134,7 @@ const LiquidityEdit = ({
       setDepositValue(null);
       return;
     }
-    const expectedTokenAmount = ethValue.mul(dexTokenBalance).div(dexEthBalance);
+    const expectedTokenAmount = expectedTokenAmountForDeposit(ethValue, dexTokenBalance, dexEthBalance);
     if (expectedTokenAmount.gt(userTokenBalance)) {
       setAmountErrorDeposit("You have insufficient SRT");
       setDepositValue(null);
@@ -165,12 +180,12 @@ const LiquidityEdit = ({
   };
 
   const applyMaxDepositAmount = () => {
-    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(maxEthSpendable), 2);
+    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(maxEthDepositable), 2);
     _updateDepositInput(ethAmount);
   };
 
   const applyMaxWithdrawAmount = () => {
-    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(userEthLiquidity), 2);
+    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(userLiquidity), 2);
     _updateWithdrawInput(ethAmount);
   };
 
@@ -186,9 +201,9 @@ const LiquidityEdit = ({
 
   const liquidityInput = type => (
     <Input
-      // size="large"
+      size="large"
       style={{ textAlign: "left" }}
-      prefix={<span style={{ marginRight: "0.5rem" }}>Ξ</span>}
+      prefix={<span style={{ marginRight: "0.5rem" }}>{type === "deposit" ? "ETH" : "Ξ"}</span>}
       suffix={
         <span
           style={{
@@ -206,7 +221,7 @@ const LiquidityEdit = ({
             customSymbol=""
             size={16}
             padding={0}
-            balance={type === "deposit" ? maxEthSpendable : userLiquidity}
+            balance={type === "deposit" ? maxEthDepositable : userLiquidity}
           />
         </span>
       }
@@ -225,9 +240,9 @@ const LiquidityEdit = ({
       type === "deposit" ? (needTransferApproval ? approveDepositTransfer : executeDeposit) : executeWithdraw;
     return (
       <Button
-        style={{ width: "9rem" }}
+        style={{ width: "7rem", flexShrink: 0 }}
         type={"primary"}
-        // size="large"
+        size="large"
         disabled={type === "deposit" ? !depositAllowed : !withdrawAllowed}
         loading={type === "deposit" ? isExecutingDeposit : isExecutingWithdraw}
         onClick={buttonAction}
@@ -258,6 +273,45 @@ const LiquidityEdit = ({
     );
   };
 
+  const assetBalance = (asset, value) => (
+    <span
+      style={{
+        // color: softTextCol,
+        color: primaryCol,
+        transition: "opacity 0.1s ease-out",
+        display: "flex",
+        alignItems: "center",
+        gap: "0.25rem",
+        // fontSize: "1rem",
+      }}
+    >
+      <div>{asset === "eth" ? "ETH" : "SRT"}</div>
+      <CustomBalance noClick etherMode={false} customSymbol="" size={14} padding={0} balance={value} decimals={4} />
+    </span>
+  );
+
+  const withdrawOutputDisplay = () => {
+    if (!expectedWithdrawOutput) return <></>;
+    const { ethPart, srtPart } = expectedWithdrawOutput;
+    return (
+      <div style={{ display: "flex", gap: "1rem", padding: "0 0.25rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexGrow: 1,
+            color: softTextCol,
+            opacity: 0.8,
+          }}
+        >
+          {assetBalance("eth", ethPart)}- Receive -{assetBalance("srt", srtPart)}
+        </div>
+        <div style={{ width: "7rem" }}>{""}</div>
+      </div>
+    );
+  };
+
   const liquidityForm = type => {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "stretch" }}>
@@ -265,15 +319,34 @@ const LiquidityEdit = ({
           {liquidityInput(type)}
           {liquidityInputButton(type)}
         </div>
+        {type === "withdraw" ? withdrawOutputDisplay() : <></>}
         {liquidityInputError(type)}
       </div>
     );
   };
 
+  const userBalances = (
+    <div style={{ display: "flex", gap: "1rem", padding: "0 0.25rem" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexGrow: 1,
+          color: softTextCol,
+          opacity: 0.8,
+        }}
+      >
+        {assetBalance("eth", userEthBalance)}- Balance -{assetBalance("srt", userTokenBalance)}
+      </div>
+      <div style={{ width: "7rem" }}>{""}</div>
+    </div>
+  );
+
   const approveDepositTransfer = async () => {
     setIsExecutingDeposit(true);
 
-    const expectedTokenAmount = depositValue.mul(dexTokenBalance).div(dexEthBalance);
+    const expectedTokenAmount = expectedTokenAmountForDeposit(depositValue, dexTokenBalance, dexEthBalance);
 
     await tx(writeContracts.SoRadToken.approve(readContracts.SoRadDEX.address, expectedTokenAmount), update => {
       if (update && (update.error || update.reason)) {
@@ -327,10 +400,13 @@ const LiquidityEdit = ({
   return (
     <div style={{ width: "26rem", margin: "1rem auto 0" }}>
       {readyAll && (
-        <div style={{ display: "flex", gap: "0.5rem", flexDirection: "column" }}>
-          {liquidityForm("deposit")}
-          {liquidityForm("withdraw")}
-        </div>
+        <>
+          <div style={{ marginBottom: "0.25rem" }}>{userBalances}</div>
+          <div style={{ display: "flex", gap: "1rem", flexDirection: "column" }}>
+            {liquidityForm("deposit")}
+            {liquidityForm("withdraw")}
+          </div>
+        </>
       )}
     </div>
   );
