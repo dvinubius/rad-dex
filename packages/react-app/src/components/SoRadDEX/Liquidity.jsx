@@ -28,8 +28,17 @@ const Liquidity = ({
   const labelCol = "hsl(0, 0%, 40%)";
   const totalCol = valuesColor;
 
-  const labelStyle = { fontSize: "1rem", color: labelCol, flexShrink: 0 };
-  const balanceWrapperStyle = { width: "100%", display: "flex", justifyContent: "flex-end" };
+  const labelStyle = {
+    fontSize: "1rem",
+    color: labelCol,
+    flexShrink: 0,
+    color: window.localStorage.getItem("theme") === "light" ? "#111111" : "#eeeeee",
+  };
+  const balanceWrapperStyle = {
+    width: "100%",
+    display: "flex",
+    justifyContent: "flex-end",
+  };
 
   const canCalculate = userLiquidity && totalLiquidity;
   const userTokenReserve = canCalculate && userLiquidity.mul(tokenBalance).div(totalLiquidity);
@@ -51,7 +60,7 @@ const Liquidity = ({
           className="Liquidity"
         >
           <div style={{ display: "flex", justifyContent: "space-between", padding: "0 1rem 0.5rem" }}>
-            <div style={{ ...labelStyle, color: "#111111", fontWeight: 500 }}>Total</div>
+            <div style={{ ...labelStyle, fontWeight: 500 }}>Total</div>
 
             <div style={balanceWrapperStyle}>
               <CustomBalance
@@ -64,7 +73,7 @@ const Liquidity = ({
               />
             </div>
           </div>
-          <Descriptions bordered size="small" style={{ backgroundColor: "white", width: "100%" }}>
+          <Descriptions bordered size="small" style={{ width: "100%" }}>
             {[0, 1].map(idx => (
               <Descriptions.Item label={<span style={labelStyle}>{idx === 0 ? "SRT" : "ETH"}</span>} span={6}>
                 <div style={{ ...balanceWrapperStyle, opacity: 0.8 }}>
@@ -91,7 +100,7 @@ const Liquidity = ({
           className="Liquidity"
         >
           <div style={{ display: "flex", justifyContent: "space-between", padding: "0 1rem 0.5rem" }}>
-            <div style={{ ...labelStyle, color: "#111111", fontWeight: 500 }}>Yours</div>
+            <div style={{ ...labelStyle, fontWeight: 500 }}>Yours</div>
 
             <div style={balanceWrapperStyle}>
               <CustomBalance
@@ -104,7 +113,7 @@ const Liquidity = ({
               />
             </div>
           </div>
-          <Descriptions bordered size="small" style={{ backgroundColor: "white", width: "100%" }}>
+          <Descriptions bordered size="small" style={{ width: "100%" }} className="ThemedDescription">
             {[0, 1].map(idx => (
               <Descriptions.Item label={<span style={labelStyle}>{idx === 0 ? "SRT" : "ETH"}</span>} span={6}>
                 <div style={{ ...balanceWrapperStyle, opacity: 0.8 }}>

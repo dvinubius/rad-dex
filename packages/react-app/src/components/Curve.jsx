@@ -1,16 +1,17 @@
 import { ArrowRightOutlined, LineOutlined } from "@ant-design/icons";
 import React, { useRef, useEffect } from "react";
-import { curveGradient, swapGradient } from "../styles";
+import { curveGradient, softTextCol, swapGradient } from "../styles";
 
 export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve, width, height }) {
   let ref = useRef();
+  const isLightTheme = window.localStorage.getItem("theme") === "light";
 
   const drawArrow = (ctx, x1, y1, x2, y2) => {
     let [dx, dy] = [x1 - x2, y1 - y2];
     let norm = Math.sqrt(dx * dx + dy * dy);
     let [udx, udy] = [dx / norm, dy / norm];
     // const size = norm / 7;
-    const size = 10;
+    const size = Math.pow(Math.max(Math.abs(dx), Math.abs(dy)), 0.45);
 
     ctx.lineWidth = 1.25;
     ctx.beginPath();
@@ -18,9 +19,9 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
     ctx.lineTo(x2, y2);
     ctx.stroke();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 + udx * size - udy * size, y2 + udx * size + udy * size);
+    ctx.lineTo(x2 + udx * size * 2 - (udy * size) / 1.5, y2 + (udx * size) / 1.5 + udy * size * 2);
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 + udx * size + udy * size, y2 - udx * size + udy * size);
+    ctx.lineTo(x2 + udx * size * 2 + (udy * size) / 1.5, y2 - (udx * size) / 1.5 + udy * size * 2);
     ctx.stroke();
   };
 
@@ -59,8 +60,8 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
       const plotY = y => {
         return height - ((y - minY) / (maxY - minY)) * height;
       };
-      ctx.strokeStyle = "#111";
-      ctx.fillStyle = "#111";
+      ctx.strokeStyle = isLightTheme ? "#333" : "#bbb";
+      ctx.fillStyle = isLightTheme ? "#333" : "#bbb";
 
       ctx.font = textSize + "px Arial";
       // +Y axis
@@ -74,9 +75,9 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
       ctx.lineTo(plotX(maxX), plotY(minY));
       ctx.stroke();
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = doPlot ? "hsla(328, 100%, 54%, 0.5)" : "#dddddd";
-      ctx.fillStyle = doPlot ? "hsla(328, 100%, 54%, 0.5)" : "#dddddd";
+      ctx.lineWidth = isLightTheme ? 2 : doPlot ? 2 : 1;
+      ctx.strokeStyle = doPlot ? "hsla(328, 100%, 54%, 0.5)" : isLightTheme ? "#dddddd" : "#999";
+      ctx.fillStyle = doPlot ? "hsla(328, 100%, 54%, 0.5)" : isLightTheme ? "#dddddd" : "#999";
 
       ctx.beginPath();
       let first = true;
@@ -95,62 +96,62 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
 
       ctx.lineWidth = 1;
 
-      const plotColor = "#111111";
+      const plotTextColor = isLightTheme ? "#111" : "#efefef";
       const startColor = doPlot ? "hsla(328, 100%, 54%, 1)" : "#dddddd";
-      const destinationColor = "#hsla(328, 10%, 54%, 0.2)";
-      const arrowHorizontalColor = "#880088";
-      const arrowVerticalColor = "#880088";
+      const destinationColor = "hsla(328, 40%, 54%, 1)";
+      const arrowColor = isLightTheme ? "hsla(328, 80%, 24%, 0.4)" : "hsla(328, 80%, 44%, 0.6)";
 
       if (+addingEth) {
         let newEthReserve = ethReserve + parseFloat(addingEth);
+
+        ctx.strokeStyle = arrowColor;
+        drawArrow(ctx, plotX(ethReserve), plotY(tokenReserve), plotX(newEthReserve), plotY(tokenReserve));
+
+        ctx.fillStyle = plotTextColor;
+        ctx.fillText("" + addingEth + " ETH in", plotX(ethReserve) + textSize, plotY(tokenReserve) - textSize);
+
+        ctx.strokeStyle = arrowColor;
+        drawArrow(ctx, plotX(newEthReserve), plotY(tokenReserve), plotX(newEthReserve), plotY(k / newEthReserve));
+
+        let amountGained = Math.round((10000 * (addingEth * tokenReserve)) / newEthReserve) / 10000;
+        ctx.fillStyle = plotTextColor;
+        ctx.fillText(
+          "" + amountGained + " SRT out",
+          plotX(newEthReserve) + textSize,
+          plotY(k / newEthReserve) - 4 * textSize,
+        );
+        ctx.fillText("(-0.3% fee)", plotX(newEthReserve) + textSize, plotY(k / newEthReserve) - 2.5 * textSize);
 
         ctx.fillStyle = destinationColor;
         ctx.beginPath();
         ctx.arc(plotX(newEthReserve), plotY(k / newEthReserve), 5, 0, 2 * Math.PI);
         ctx.fill();
-
-        ctx.strokeStyle = arrowHorizontalColor;
-        drawArrow(ctx, plotX(ethReserve), plotY(tokenReserve), plotX(newEthReserve), plotY(tokenReserve));
-
-        ctx.fillStyle = plotColor;
-        ctx.fillText("" + addingEth + " ETH input", plotX(ethReserve) + textSize, plotY(tokenReserve) - textSize);
-
-        ctx.strokeStyle = arrowVerticalColor;
-        drawArrow(ctx, plotX(newEthReserve), plotY(tokenReserve), plotX(newEthReserve), plotY(k / newEthReserve));
-
-        let amountGained = Math.round((10000 * (addingEth * tokenReserve)) / newEthReserve) / 10000;
-        ctx.fillStyle = plotColor;
-        ctx.fillText(
-          "" + amountGained + " SRT output (-0.3% fee)",
-          plotX(newEthReserve) + textSize,
-          plotY(k / newEthReserve),
-        );
       } else if (+addingToken) {
         let newTokenReserve = tokenReserve + parseFloat(addingToken);
 
-        ctx.fillStyle = destinationColor;
-        ctx.beginPath();
-        ctx.arc(plotX(k / newTokenReserve), plotY(newTokenReserve), 5, 0, 2 * Math.PI);
-        ctx.fill();
-
         //console.log("newTokenReserve",newTokenReserve)
-        ctx.strokeStyle = arrowVerticalColor;
+        ctx.strokeStyle = arrowColor;
         drawArrow(ctx, plotX(ethReserve), plotY(tokenReserve), plotX(ethReserve), plotY(newTokenReserve));
 
-        ctx.fillStyle = plotColor;
-        ctx.fillText("" + addingToken + " SRT input", plotX(ethReserve) + textSize, plotY(tokenReserve));
+        ctx.fillStyle = plotTextColor;
+        ctx.fillText("" + addingToken + " SRT in", plotX(ethReserve) + textSize, plotY(tokenReserve));
 
-        ctx.strokeStyle = arrowHorizontalColor;
+        ctx.strokeStyle = arrowColor;
         drawArrow(ctx, plotX(ethReserve), plotY(newTokenReserve), plotX(k / newTokenReserve), plotY(newTokenReserve));
 
         let amountGained = Math.round((10000 * (addingToken * ethReserve)) / newTokenReserve) / 10000;
         //console.log("amountGained",amountGained)
-        ctx.fillStyle = plotColor;
+        ctx.fillStyle = plotTextColor;
         ctx.fillText(
-          "" + amountGained + " ETH output (-0.3% fee)",
+          "" + amountGained + " ETH out",
           plotX(k / newTokenReserve) + textSize,
-          plotY(newTokenReserve) - textSize,
+          plotY(newTokenReserve) - textSize * 4,
         );
+        ctx.fillText("(-0.3% fee)", plotX(k / newTokenReserve) + textSize, plotY(newTokenReserve) - textSize * 2.5);
+        ctx.fillStyle = destinationColor;
+        ctx.beginPath();
+        ctx.arc(plotX(k / newTokenReserve), plotY(newTokenReserve), 5, 0, 2 * Math.PI);
+        ctx.fill();
       }
 
       ctx.fillStyle = startColor;
@@ -160,8 +161,10 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
     }
   }, [addingEth, addingToken, ethReserve, tokenReserve]);
 
+  const borderCol = isLightTheme ? "#f3f3f3" : "#999";
+  const axisLabelsCol = isLightTheme ? "#444" : "#aaa";
   return (
-    <div style={{ padding: "2rem", background: curveGradient, border: "1px solid #f3f3f3" }}>
+    <div style={{ padding: "2rem", background: curveGradient, border: `1px solid ${borderCol}` }}>
       <div style={{ position: "relative", width: width, height: height }}>
         <canvas style={{ position: "absolute", left: 0, top: 0 }} ref={ref} width={width} height={height} />
         <div
@@ -172,6 +175,7 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
             left: "50%",
             transform: "translateX(-50%)",
             bottom: "-1.5rem",
+            color: axisLabelsCol,
           }}
         >
           <div style={{ marginRight: "1rem", transform: "scaleX(2)" }}>
@@ -191,6 +195,7 @@ export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve
             bottom: "50%",
             transform: "rotate(-90deg) translateX(-50%)",
             transformOrigin: "0 0",
+            color: axisLabelsCol,
           }}
         >
           <div style={{ marginRight: "1rem", transform: "scaleX(2)" }}>

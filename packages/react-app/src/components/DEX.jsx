@@ -73,8 +73,8 @@ export default function DEX({
           addingToken={addingToken}
           ethReserve={dexEthBalanceFloat}
           tokenReserve={dexTokenBalanceFloat}
-          width={490}
-          height={490}
+          width={480}
+          height={480}
         />
       </div>
     </div>

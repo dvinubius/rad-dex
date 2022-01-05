@@ -23868,3 +23868,17 @@ div.ant-typography-edit-content.ant-typography-rtl {
 .highlight {
   background-color: #3f3f3f;
 }
+
+.Liquidity .ant-descriptions-bordered.ant-descriptions-small .ant-descriptions-item-content {
+  background-color: #222222;
+}
+
+.ant-input-affix-wrapper.ant-input-affix-wrapper-disabled {
+  background-color: #151515;
+}
+
+.SwapArrow {
+  background-color: #232122;
+  color: #6f6c6c;
+  border: 1px solid #6f6c6c;
+}
