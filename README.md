@@ -1,4 +1,4 @@
-# Minimum Viable DEX Challenge
+# Minimum Viable DEX
 
 Project built with scaffold eth along the lines of the official [minimum viable dex challenge](https://speedrunethereum.com/).
 
