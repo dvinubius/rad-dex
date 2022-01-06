@@ -116,6 +116,9 @@ const LiquidityEdit = ({
   // =========== PIECES =========== //
 
   const _updateDepositInput = ethAmount => {
+    if (ethAmount && ethAmount.startsWith(".")) {
+      ethAmount = "0" + ethAmount;
+    }
     // NUMERIC VALIDITY
     if (ethAmount.length > 22) return;
     let ethValue = +ethAmount;
@@ -155,6 +158,9 @@ const LiquidityEdit = ({
   };
 
   const _updateWithdrawInput = withdrawAmount => {
+    if (withdrawAmount && withdrawAmount.startsWith(".")) {
+      withdrawAmount = "0" + withdrawAmount;
+    }
     // NUMERIC VALIDITY
     if (withdrawAmount.length > 22) return;
     let withdrawValue = +withdrawAmount;

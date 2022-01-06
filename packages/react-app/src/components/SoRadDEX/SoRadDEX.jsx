@@ -140,6 +140,9 @@ const SoRadDEX = ({
   // =========== PIECES =========== //
 
   const _updateEthInput = ethAmount => {
+    if (ethAmount && ethAmount.startsWith(".")) {
+      ethAmount = "0" + ethAmount;
+    }
     // NUMERIC VALIDITY
     if (ethAmount.length > 22) return;
     let ethValue = +ethAmount;
@@ -173,6 +176,9 @@ const SoRadDEX = ({
   };
 
   const _updateTokenInput = tokenAmount => {
+    if (tokenAmount && tokenAmount.startsWith(".")) {
+      tokenAmount = "0" + tokenAmount;
+    }
     // NUMERIC VALIDITY
     if (tokenAmount.length > 22) return;
     let tokenValue = +tokenAmount;
