@@ -208,53 +208,58 @@ const LiquidityEdit = ({
     forceUpdate();
   };
 
-  const liquidityInput = type => (
-    <Input
-      size="large"
-      style={{ textAlign: "left" }}
-      // placeholder={type === "deposit" ? "deposit amount" : "withdraw liquidity"}
-      prefix={
-        <span style={{ marginRight: "0.5rem" }}>
-          {type === "deposit" ? (
-            "ETH"
-          ) : (
-            <span style={{ color: primaryCol }}>
-              <span>Ξ</span>
-              {/* <span style={{ visibility: "hidden" }}>T</span>
+  const liquidityInput = type => {
+    const isDisabled = type === "withdraw" && userLiquidity && userLiquidity.eq(0);
+    const suffixBalanceCol = type === "deposit" || isDisabled ? softTextCol : primaryCol;
+    return (
+      <Input
+        size="large"
+        style={{ textAlign: "left" }}
+        // placeholder={type === "deposit" ? "deposit amount" : "withdraw liquidity"}
+        disabled={isDisabled}
+        prefix={
+          <span style={{ marginRight: "0.5rem" }}>
+            {type === "deposit" ? (
+              "ETH"
+            ) : (
+              <span style={{ color: isDisabled ? softTextCol : primaryCol }}>
+                <span>Ξ</span>
+                {/* <span style={{ visibility: "hidden" }}>T</span>
               <span style={{ visibility: "hidden" }}>H</span> */}
-            </span>
-          )}
-        </span>
-      }
-      suffix={
-        <span
-          style={{
-            color: softTextCol,
-            cursor: "pointer",
-            transition: "opacity 0.1s ease-out",
-          }}
-          onClick={type === "deposit" ? applyMaxDepositAmount : applyMaxWithdrawAmount}
-        >
-          max{" "}
-          <span style={{ color: type === "deposit" ? softTextCol : primaryCol }}>
-            <CustomBalance
-              noClick
-              etherMode={false}
-              customSymbol=""
-              size={16}
-              padding={0}
-              balance={type === "deposit" ? maxEthDepositable : userLiquidity}
-            />
+              </span>
+            )}
           </span>
-        </span>
-      }
-      value={type === "deposit" ? depositFormAmount : withdrawFormAmount}
-      onChange={
-        type === "deposit" ? e => _updateDepositInput(e.target.value) : e => _updateWithdrawInput(e.target.value)
-      }
-      onPaste={e => e.preventDefault()}
-    />
-  );
+        }
+        suffix={
+          <span
+            style={{
+              color: softTextCol,
+              cursor: "pointer",
+              transition: "opacity 0.1s ease-out",
+            }}
+            onClick={type === "deposit" ? applyMaxDepositAmount : applyMaxWithdrawAmount}
+          >
+            max{" "}
+            <span style={{ color: suffixBalanceCol }}>
+              <CustomBalance
+                noClick
+                etherMode={false}
+                customSymbol=""
+                size={16}
+                padding={0}
+                balance={type === "deposit" ? maxEthDepositable : userLiquidity}
+              />
+            </span>
+          </span>
+        }
+        value={type === "deposit" ? depositFormAmount : withdrawFormAmount}
+        onChange={
+          type === "deposit" ? e => _updateDepositInput(e.target.value) : e => _updateWithdrawInput(e.target.value)
+        }
+        onPaste={e => e.preventDefault()}
+      />
+    );
+  };
 
   const liquidityInputButton = type => {
     const needTransferApproval = hasValidDepositAmount && !isDepositTransferApproved;
@@ -293,7 +298,7 @@ const LiquidityEdit = ({
               fontSize: "0.875rem",
             }}
           >
-            for {assetBalance("srt", expectedTransferAmount, undefined, primaryCol)}
+            {assetBalance("srt", expectedTransferAmount, undefined, primaryCol)}
           </div>
         )}
       </div>

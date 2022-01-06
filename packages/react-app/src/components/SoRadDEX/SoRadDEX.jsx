@@ -11,6 +11,7 @@ import { errorCol, softTextCol, swapGradient } from "../../styles";
 import { exactFloatToFixed, printTPE } from "../../helpers/numeric";
 import SectionTitle from "../CustomKit/SectionTitle";
 import Liquidity from "./Liquidity";
+import SoRadIcon from "../SoRadToken/SoRadIcon";
 
 const { ethers } = require("ethers");
 
@@ -37,6 +38,7 @@ const SoRadDEX = ({
   const swapWidthRem = 22;
   const dexWidthRem = 32;
 
+  const tokenAddress = readContracts.SoRadToken.address;
   const dexETHBalance = useBalance(localProvider, dexAddress);
   const dexApproval = useContractReader(readContracts, "SoRadToken", "allowance", [userAddress, dexAddress]);
   const dexTokenBalance = useContractReader(readContracts, "SoRadToken", "balanceOf", [dexAddress]);
@@ -411,6 +413,31 @@ const SoRadDEX = ({
     </div>
   );
 
+  const titleWithLink = (titleContent, linkURL) => {
+    return (
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          gap: "0.5rem",
+        }}
+      >
+        {titleContent}
+        <div
+          style={{
+            fontSize: "1.25rem",
+          }}
+        >
+          <a href={linkURL} target="blank">
+            <LinkOutlined />
+          </a>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       style={{
@@ -425,31 +452,15 @@ const SoRadDEX = ({
       <Card
         style={{ minWidth: `${dexWidthRem}rem`, margin: "auto", background: swapGradient, minHeight: height ?? "100%" }}
         title={
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-            }}
-          >
-            <SectionTitle text="So Rad DEX" />{" "}
-            <div
-              style={{
-                position: "absolute",
-                right: "0rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                fontSize: "1.25rem",
-              }}
-            >
-              <a href={`https://rinkeby.etherscan.io/address/${dexAddress}`} target="blank">
-                <LinkOutlined />
-              </a>
-            </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            {titleWithLink(
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <SoRadIcon size={28} />
+                <SectionTitle text="So Rad Token" />
+              </div>,
+              `https://rinkeby.etherscan.io/address/${tokenAddress}`,
+            )}
+            {titleWithLink(<SectionTitle text="DEX" />, `https://rinkeby.etherscan.io/address/${dexAddress}`)}
           </div>
         }
       >

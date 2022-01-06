@@ -1,3 +1,9 @@
+# Minimum Viable DEX Challenge
+
+Project built with scaffold eth along the lines of the official [minimum viable dex challenge](https://speedrunethereum.com/).
+
+Beyond the challenge requirements this app tackles a few essential DEX usability issues. The frontend architecture is work in progress, looking for good scaling patterns that work on top of the scaffold-eth approach.
+
 # 🏗 Scaffold-ETH
 
 > everything you need to build on Ethereum! 🚀
