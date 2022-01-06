@@ -4,6 +4,10 @@ Project built with scaffold eth along the lines of the official [minimum viable 
 
 Beyond the challenge requirements this app tackles a few essential DEX usability issues. The frontend architecture is work in progress, looking for good scaling patterns that work on top of the scaffold-eth approach.
 
+Feel free to fork an build on top!
+
+For questions DM me [@dvinubius](https://twitter.com/messages/compose?recipient_id=1347938190385172486);
+
 # 🏗 Scaffold-ETH
 
 > everything you need to build on Ethereum! 🚀
