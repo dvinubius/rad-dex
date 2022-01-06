@@ -8,7 +8,7 @@ Feel free to fork an build on top!
 
 For questions DM me [@dvinubius](https://twitter.com/messages/compose?recipient_id=1347938190385172486);
 
-## Live on [Rinkeby](https://minimum-rad-dex.surge.sh) 🤩;
+## Live on [Rinkeby](https://minimum-rad-dex.surge.sh) 🤩
 
 # 🏗 Scaffold-ETH
 
