@@ -6,7 +6,7 @@ Beyond the challenge requirements this app tackles a few essential DEX usability
 
 Feel free to fork an build on top!
 
-For questions DM me [@dvinubius](https://twitter.com/messages/compose?recipient_id=1347938190385172486);
+For questions DM me on Twitter [@dvinubius](https://twitter.com/messages/compose?recipient_id=1347938190385172486)
 
 ## Live on [Rinkeby](https://minimum-rad-dex.surge.sh) 🤩
 
