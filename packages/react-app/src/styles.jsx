@@ -6,3 +6,6 @@ export const swapGradient = "linear-gradient(-45deg, hsla(328, 100%, 54%, 0.03),
 export const curveGradient =
   "linear-gradient(-45deg, hsla(203, 100%, 54%, 0.07), transparent,  hsla(203, 100%, 54%, 0.07))";
 export const softBg = "hsla(203, 0%, 54%, 0.1)";
+
+export const nestedCardBGLight = "hsla(203,50%, 99%, 0.9)";
+export const nestedCardBGDark = "hsla(203,100%, 12%, 0.3)";

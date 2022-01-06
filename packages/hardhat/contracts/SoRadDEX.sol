@@ -68,13 +68,14 @@ contract SoRadDEX {
         return liquidity_minted;
     }
 
-    function withdraw(uint256 amount) public returns (uint256, uint256) {
+    function withdraw(uint256 liq_amount) public returns (uint256, uint256) {
         uint256 token_reserve = srts.balanceOf(address(this));
-        uint256 eth_amount = (amount * address(this).balance) / totalLiquidity;
-        uint256 token_amount = (amount * token_reserve) / totalLiquidity;
-        liquidity[msg.sender] = liquidity[msg.sender] - eth_amount;
-        totalLiquidity = totalLiquidity - eth_amount;
-        payable(msg.sender).transfer(eth_amount);
+        uint256 eth_amount = (liq_amount * address(this).balance) /
+            totalLiquidity;
+        uint256 token_amount = (liq_amount * token_reserve) / totalLiquidity;
+        liquidity[msg.sender] -= liq_amount;
+        totalLiquidity -= liq_amount;
+        (bool sent, ) = msg.sender.call{value: eth_amount}("");
         require(srts.transfer(msg.sender, token_amount));
         return (eth_amount, token_amount);
     }

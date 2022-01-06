@@ -21,6 +21,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const soRadToken = await ethers.getContract("SoRadToken", deployer);
 
   const devAddr = "0x967752A2a06b0bD0519A08d496D988BcC6156CD7";
+  // const devAddr = "0x281f0d74Fa356C17E36603995e0f50D298d4a5A9";
   console.log(`\n 🏵  Sending 10 tokens to ${devAddr}...\n`);
   const transfer = await soRadToken.transfer(
     devAddr,
@@ -53,19 +54,19 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // });
 
   // ToDo: Verify your contract with Etherscan for public chains
-  if (chainId !== "31337") {
-    try {
-      console.log(" 🎫 Verifing Contract on Etherscan... ");
-      await sleep(15000); // wait 5 seconds for deployment to propagate
-      await run("verify:verify", {
-        address: soRadToken.address,
-        contract: "contracts/SoRadToken.sol:SoRadToken",
-        contractArguments: [],
-      });
-    } catch (e) {
-      console.log(" ⚠️ Failed to verify contract on Etherscan ");
-    }
-  }
+  // if (chainId !== "31337") {
+  //   try {
+  //     console.log(" 🎫 Verifing Contract on Etherscan... ");
+  //     await sleep(15000); // wait 5 seconds for deployment to propagate
+  //     await run("verify:verify", {
+  //       address: soRadToken.address,
+  //       contract: "contracts/SoRadToken.sol:SoRadToken",
+  //       contractArguments: [],
+  //     });
+  //   } catch (e) {
+  //     console.log(" ⚠️ Failed to verify contract on Etherscan ");
+  //   }
+  // }
 };
 
 module.exports.tags = ["RadToken"];

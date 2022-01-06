@@ -14,7 +14,7 @@
   height: 1.75rem;
   font-size: 0.875rem;
   border-radius: 50%;
-  z-index: 100;
+  z-index: 2;
   cursor: pointer;
   transition: all 0.1s ease-out;
   user-select: none;

@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Input } from "antd";
-import { errorCol, primaryCol, softTextCol } from "../../styles";
+import { Button, Card, Input, Tooltip } from "antd";
+import { errorCol, nestedCardBGDark, nestedCardBGLight, primaryCol, softTextCol } from "../../styles";
 import { useContractLoader, useContractReader } from "eth-hooks";
 import CustomBalance from "../CustomKit/CustomBalance";
 import { exactFloatToFixed } from "../../helpers/numeric";
 import { calcExpectedWithdrawOutput, expectedTokenAmountForDeposit, maxDepositableEth } from "./LiquidityUtils";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 const { ethers } = require("ethers");
 
 const LiquidityEdit = ({
@@ -20,9 +21,12 @@ const LiquidityEdit = ({
   dexTokenBalance,
   userEthBalance,
   userTokenBalance,
-  userSigner,
   gasPrice,
 }) => {
+  const isLightTheme = window.localStorage.getItem("theme") === "light";
+  const totalWidthRem = 30;
+  const rightColWidthRem = 7.5;
+
   const [depositFormAmount, setDepositFormAmount] = useState(); // text
   const [withdrawFormAmount, setWithdrawFormAmount] = useState(); // text
   const [depositValue, setDepositValue] = useState(); // bn
@@ -75,12 +79,17 @@ const LiquidityEdit = ({
   useEffect(() => {
     if (!dex || !gasPrice) return;
     const getEst = async () => {
-      let est;
+      // 30 000  for  approval. to be safe with the estimate we always include this gas cost even if an approval won't be necessary
+      let est = 30000;
       try {
-        est = await dex.connect(userSigner).estimateGas.deposit({ value: userEthBalance });
+        // hardcoding tx cost because:
+        // estimate is not possible without having approval first
+        // executing with 0 ether also errors because even a 0 eth deposit involves a token transfer of 1 wei
+        // est = await dex.connect(userSigner).estimateGas.deposit({ value: ethers.utils.parseEther(maxEthDepositable) });
+        est = 80000;
         console.log("estimated gas: ", est.toString());
       } catch (e) {
-        console.log("failed gas estimation");
+        console.error("failed gas estimation");
         est = "0";
       }
       const gasCostEstimate = ethers.BigNumber.from(gasPrice).mul(est);
@@ -180,12 +189,12 @@ const LiquidityEdit = ({
   };
 
   const applyMaxDepositAmount = () => {
-    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(maxEthDepositable), 2);
+    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(maxEthDepositable), 5);
     _updateDepositInput(ethAmount);
   };
 
   const applyMaxWithdrawAmount = () => {
-    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(userLiquidity), 2);
+    const ethAmount = exactFloatToFixed(ethers.utils.formatEther(userLiquidity), 4);
     _updateWithdrawInput(ethAmount);
   };
 
@@ -203,26 +212,40 @@ const LiquidityEdit = ({
     <Input
       size="large"
       style={{ textAlign: "left" }}
-      prefix={<span style={{ marginRight: "0.5rem" }}>{type === "deposit" ? "ETH" : "Ξ"}</span>}
+      // placeholder={type === "deposit" ? "deposit amount" : "withdraw liquidity"}
+      prefix={
+        <span style={{ marginRight: "0.5rem" }}>
+          {type === "deposit" ? (
+            "ETH"
+          ) : (
+            <span style={{ color: primaryCol }}>
+              <span>Ξ</span>
+              {/* <span style={{ visibility: "hidden" }}>T</span>
+              <span style={{ visibility: "hidden" }}>H</span> */}
+            </span>
+          )}
+        </span>
+      }
       suffix={
         <span
           style={{
             color: softTextCol,
-            marginRight: "0.5rem",
             cursor: "pointer",
             transition: "opacity 0.1s ease-out",
           }}
           onClick={type === "deposit" ? applyMaxDepositAmount : applyMaxWithdrawAmount}
         >
           max{" "}
-          <CustomBalance
-            noClick
-            etherMode={false}
-            customSymbol=""
-            size={16}
-            padding={0}
-            balance={type === "deposit" ? maxEthDepositable : userLiquidity}
-          />
+          <span style={{ color: type === "deposit" ? softTextCol : primaryCol }}>
+            <CustomBalance
+              noClick
+              etherMode={false}
+              customSymbol=""
+              size={16}
+              padding={0}
+              balance={type === "deposit" ? maxEthDepositable : userLiquidity}
+            />
+          </span>
         </span>
       }
       value={type === "deposit" ? depositFormAmount : withdrawFormAmount}
@@ -234,21 +257,46 @@ const LiquidityEdit = ({
   );
 
   const liquidityInputButton = type => {
-    const needTransferApproval = isDepositTransferApproved || !hasValidDepositAmount;
-    const buttonText = type === "deposit" ? (needTransferApproval ? "Deposit" : "Approve") : "Withdraw";
+    const needTransferApproval = hasValidDepositAmount && !isDepositTransferApproved;
+    const buttonText = type === "deposit" ? (needTransferApproval ? "Approve" : "Deposit") : "Withdraw";
     const buttonAction =
       type === "deposit" ? (needTransferApproval ? approveDepositTransfer : executeDeposit) : executeWithdraw;
+    const expectedTransferAmount =
+      needTransferApproval && dexTokenBalance && dexEthBalance && depositValue
+        ? expectedTokenAmountForDeposit(depositValue, dexTokenBalance, dexEthBalance)
+        : 0;
     return (
-      <Button
-        style={{ width: "7rem", flexShrink: 0 }}
-        type={"primary"}
-        size="large"
-        disabled={type === "deposit" ? !depositAllowed : !withdrawAllowed}
-        loading={type === "deposit" ? isExecutingDeposit : isExecutingWithdraw}
-        onClick={buttonAction}
-      >
-        {buttonText}
-      </Button>
+      <div style={{ position: "relative" }}>
+        <Button
+          style={{ width: `${rightColWidthRem}rem`, flexShrink: 0 }}
+          type={"primary"}
+          size="large"
+          disabled={type === "deposit" ? !depositAllowed : !withdrawAllowed}
+          loading={type === "deposit" ? isExecutingDeposit : isExecutingWithdraw}
+          onClick={buttonAction}
+        >
+          {buttonText}
+        </Button>
+        {type === "deposit" && expectedTransferAmount !== 0 && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "-1.5rem",
+              left: 0,
+              right: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.25rem",
+              color: primaryCol,
+              opacity: 0.8,
+              fontSize: "0.875rem",
+            }}
+          >
+            for {assetBalance("srt", expectedTransferAmount, undefined, primaryCol)}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -258,10 +306,9 @@ const LiquidityEdit = ({
     return (
       <div
         style={{
-          display: "flex",
-          alignItems: "stretch",
-          justifyContent: "space-between",
-          gap: "0.5rem",
+          position: "absolute",
+          bottom: "-1.5rem",
+          left: 0,
         }}
       >
         {error && (
@@ -273,11 +320,50 @@ const LiquidityEdit = ({
     );
   };
 
-  const assetBalance = (asset, value) => (
+  const liquidityInputHelp = type => {
+    const help =
+      type === "deposit" ? (
+        <div style={{ paddingTop: "0.5rem" }}>
+          <div>
+            <strong>DEPOSIT</strong>
+          </div>
+          <p>The maximum amount depends on both your available ETH and SRT</p>
+          <div>
+            <strong>WITHDRAW</strong>
+          </div>
+          <p>You input the liquidity and receive ETH and SRT amounts according to the current pool state.</p>
+        </div>
+      ) : (
+        ""
+      );
+    if (!help) return <></>;
+    const tooltipBG = isLightTheme ? "white" : "black";
+    const tooltipCol = isLightTheme ? "#111" : "#eee";
+    return (
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-1.5rem",
+          right: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+          <Tooltip
+            title={help}
+            overlayInnerStyle={{ width: "22rem", backgroundColor: tooltipBG, color: tooltipCol, opacity: 0.9 }}
+          >
+            <QuestionCircleOutlined style={{ fontSize: "0.875rem", flexGrow: 1, color: softTextCol }} />
+          </Tooltip>
+          <div style={{ width: `${rightColWidthRem}rem` }}></div>
+        </div>
+      </div>
+    );
+  };
+
+  const assetBalance = (asset, value, fontSize = 14, color = softTextCol) => (
     <span
       style={{
-        // color: softTextCol,
-        color: primaryCol,
+        color: color,
         transition: "opacity 0.1s ease-out",
         display: "flex",
         alignItems: "center",
@@ -286,7 +372,15 @@ const LiquidityEdit = ({
       }}
     >
       <div>{asset === "eth" ? "ETH" : "SRT"}</div>
-      <CustomBalance noClick etherMode={false} customSymbol="" size={14} padding={0} balance={value} decimals={4} />
+      <CustomBalance
+        noClick
+        etherMode={false}
+        customSymbol=""
+        size={fontSize}
+        padding={0}
+        balance={value}
+        decimals={4}
+      />
     </span>
   );
 
@@ -294,7 +388,17 @@ const LiquidityEdit = ({
     if (!expectedWithdrawOutput) return <></>;
     const { ethPart, srtPart } = expectedWithdrawOutput;
     return (
-      <div style={{ display: "flex", gap: "1rem", padding: "0 0.25rem" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: "-1.5rem",
+          display: "flex",
+          gap: "1rem",
+          padding: "0 0.25rem",
+        }}
+      >
         <div
           style={{
             display: "flex",
@@ -305,22 +409,32 @@ const LiquidityEdit = ({
             opacity: 0.8,
           }}
         >
-          {assetBalance("eth", ethPart)}- Receive -{assetBalance("srt", srtPart)}
+          {assetBalance("eth", ethPart, undefined, primaryCol)}- Receive -
+          {assetBalance("srt", srtPart, undefined, primaryCol)}
         </div>
-        <div style={{ width: "7rem" }}>{""}</div>
+        <div style={{ width: `${rightColWidthRem}rem` }}>{""}</div>
       </div>
     );
   };
 
   const liquidityForm = type => {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "stretch" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.5rem",
+          alignItems: "stretch",
+          position: "relative",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {liquidityInput(type)}
           {liquidityInputButton(type)}
         </div>
         {type === "withdraw" ? withdrawOutputDisplay() : <></>}
         {liquidityInputError(type)}
+        {liquidityInputHelp(type)}
       </div>
     );
   };
@@ -337,9 +451,9 @@ const LiquidityEdit = ({
           opacity: 0.8,
         }}
       >
-        {assetBalance("eth", userEthBalance)}- Balance -{assetBalance("srt", userTokenBalance)}
+        {assetBalance("eth", userEthBalance)}- Available -{assetBalance("srt", userTokenBalance)}
       </div>
-      <div style={{ width: "7rem" }}>{""}</div>
+      <div style={{ width: `${rightColWidthRem}rem` }}>{""}</div>
     </div>
   );
 
@@ -366,7 +480,7 @@ const LiquidityEdit = ({
   const executeDeposit = async () => {
     setIsExecutingDeposit(true);
 
-    await tx(writeContracts.SoRadDEX.deposit({ value: depositValue }), update => {
+    await tx(writeContracts.SoRadDEX.deposit({ value: depositValue, gasLimit: 200000 }), update => {
       if (update && (update.error || update.reason)) {
         setIsExecutingDeposit(false);
       }
@@ -382,8 +496,7 @@ const LiquidityEdit = ({
 
   const executeWithdraw = async () => {
     setIsExecutingWithdraw(true);
-
-    await tx(writeContracts.SoRadDEX.withdraw({ value: withdrawValue }), update => {
+    await tx(writeContracts.SoRadDEX.withdraw(withdrawValue), update => {
       if (update && (update.error || update.reason)) {
         setIsExecutingWithdraw(false);
       }
@@ -396,18 +509,42 @@ const LiquidityEdit = ({
       }
     });
   };
-
+  const liquidityEditGradient = isLightTheme ? nestedCardBGLight : nestedCardBGDark;
   return (
-    <div style={{ width: "26rem", margin: "1rem auto 0" }}>
-      {readyAll && (
-        <>
-          <div style={{ marginBottom: "0.25rem" }}>{userBalances}</div>
-          <div style={{ display: "flex", gap: "1rem", flexDirection: "column" }}>
-            {liquidityForm("deposit")}
-            {liquidityForm("withdraw")}
-          </div>
-        </>
-      )}
+    <div
+      style={{
+        width: `${totalWidthRem}rem`,
+        margin: "1.5rem auto 0",
+      }}
+    >
+      <Card style={{ background: liquidityEditGradient }}>
+        {/* <div style={{}}>
+        <Button
+          type="link"
+          style={{
+            marginLeft: "auto",
+            fontSize: "1rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }}
+        >
+          <QuestionCircleOutlined />
+          Help
+        </Button>
+      </div> */}
+
+        {readyAll && (
+          <>
+            <div style={{ marginBottom: "0.25rem" }}>{userBalances}</div>
+
+            <div style={{ display: "flex", gap: "2rem", flexDirection: "column", paddingBottom: "0.5rem" }}>
+              {liquidityForm("deposit")}
+              {liquidityForm("withdraw")}
+            </div>
+          </>
+        )}
+      </Card>
     </div>
   );
 };

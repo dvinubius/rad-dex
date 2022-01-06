@@ -1,10 +1,10 @@
-import { Button, Tabs, Row, Col, Descriptions, Divider, Input } from "antd";
+import { Button, Tabs, Row, Col, Descriptions, Divider, Input, Tooltip } from "antd";
 import React, { useState } from "react";
 import { primaryCol, softBg, softTextCol } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 import LiquidityEdit from "./LiquidityEdit";
 import "./Liquidity.css";
-import { DownOutlined } from "@ant-design/icons";
+import { DownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 
 const Liquidity = ({
   tokenBalance,
@@ -22,6 +22,8 @@ const Liquidity = ({
   gasPrice,
   dexApproval,
 }) => {
+  const isLightTheme = window.localStorage.getItem("theme") === "light";
+
   const valuesColor = "deeppink";
   const mineColor = primaryCol;
 
@@ -46,16 +48,57 @@ const Liquidity = ({
 
   const [depositsHeight, setDepositsHeight] = useState(0);
   const toggleDepositsVisibility = () => {
-    const maxHeight = 200;
+    const maxHeight = 240;
     setDepositsHeight(Math.abs(depositsHeight - maxHeight));
   };
 
+  const liquidityWidthRem = 30;
+
+  const help = (
+    <div style={{ paddingTop: "0.5rem" }}>
+      <p>
+        Your <strong>Liquidity</strong> changes only when you deposit or withdraw. It is not affected by swaps.
+      </p>
+      <p>
+        Your ETH and SRT <strong>reserves</strong> make up your liquidity. The reserves ratio is affected by swaps.
+      </p>
+      <p>Your ETH/SRT ratio is the same as the total ETH/SRT ratio of the pool.</p>
+    </div>
+  );
+  const ownLiquidityHelp = (
+    <div
+      style={{
+        marginTop: "0.125rem",
+      }}
+    >
+      <Tooltip
+        title={help}
+        overlayInnerStyle={{
+          width: "22rem",
+          backgroundColor: isLightTheme ? "white" : "black",
+          color: isLightTheme ? "#111" : "#eee",
+          opacity: 0.9,
+        }}
+      >
+        <QuestionCircleOutlined style={{ fontSize: "0.875rem", flexGrow: 1, color: softTextCol }} />
+      </Tooltip>
+    </div>
+  );
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "center", gap: "2rem" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: "auto",
+          gap: "2rem",
+          width: `${liquidityWidthRem}rem`,
+        }}
+      >
         <div
           style={{
-            width: "12rem",
+            flex: "50%",
           }}
           className="Liquidity"
         >
@@ -93,14 +136,17 @@ const Liquidity = ({
         </div>
         <div
           style={{
-            width: "12rem",
+            flex: "50%",
             display: "flex",
             flexDirection: "column",
           }}
           className="Liquidity"
         >
           <div style={{ display: "flex", justifyContent: "space-between", padding: "0 1rem 0.5rem" }}>
-            <div style={{ ...labelStyle, fontWeight: 500 }}>Yours</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div style={{ ...labelStyle, fontWeight: 500 }}>Yours</div>
+              {ownLiquidityHelp}
+            </div>
 
             <div style={balanceWrapperStyle}>
               <CustomBalance
@@ -138,7 +184,7 @@ const Liquidity = ({
               justifyContent: "flex-start",
               marginTop: "1rem",
               marginLeft: "auto",
-              width: "7rem",
+              width: "9rem",
               color: softTextCol,
               borderRadius: "0.25rem",
               background: softBg,
@@ -170,7 +216,13 @@ const Liquidity = ({
         </div>
       </div>
 
-      <div style={{ maxHeight: depositsHeight, overflow: "hidden", transition: "all 0.3s ease-out" }}>
+      <div
+        style={{
+          maxHeight: depositsHeight,
+          overflow: "hidden",
+          transition: "all 0.3s ease-out",
+        }}
+      >
         <LiquidityEdit
           dexApproval={dexApproval}
           localProvider={localProvider}
@@ -184,7 +236,6 @@ const Liquidity = ({
           dexTokenBalance={tokenBalance}
           userEthBalance={userEthBalance}
           userTokenBalance={userTokenBalance}
-          userSigner={userSigner}
           gasPrice={gasPrice}
         />
       </div>

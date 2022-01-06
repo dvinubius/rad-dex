@@ -1,12 +1,12 @@
 export const expectedTokenAmountForDeposit = (depositValue, dexTokenBalance, dexEthBalance) => {
   const canCalc = depositValue && dexTokenBalance && dexEthBalance;
   if (!canCalc) throw "cannot calculate expected token for deposit";
-  return depositValue.mul(dexTokenBalance).div(dexEthBalance);
+  return depositValue.mul(dexTokenBalance).div(dexEthBalance).add(1);
 };
 export const depositForExpectedTokenAmount = (tokenAmountValue, dexTokenBalance, dexEthBalance) => {
   const canCalc = tokenAmountValue && dexTokenBalance && dexEthBalance;
   if (!canCalc) throw "cannot calculate deposit for expected token";
-  return tokenAmountValue.mul(dexEthBalance).div(dexTokenBalance);
+  return tokenAmountValue.sub(1).mul(dexEthBalance).div(dexTokenBalance);
 };
 export const maxDepositableEth = (userEthBalance, gasEstimate, userTokenBalance, dexTokenBalance, dexEthBalance) => {
   const canCalc = userEthBalance && gasEstimate && userTokenBalance && dexTokenBalance && dexEthBalance;

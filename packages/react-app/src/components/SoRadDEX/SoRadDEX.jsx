@@ -34,6 +34,9 @@ const SoRadDEX = ({
   updateEthInput,
   updateTokenInput,
 }) => {
+  const swapWidthRem = 22;
+  const dexWidthRem = 32;
+
   const dexETHBalance = useBalance(localProvider, dexAddress);
   const dexApproval = useContractReader(readContracts, "SoRadToken", "allowance", [userAddress, dexAddress]);
   const dexTokenBalance = useContractReader(readContracts, "SoRadToken", "balanceOf", [dexAddress]);
@@ -48,6 +51,7 @@ const SoRadDEX = ({
 
   const [amountError, setAmountError] = useState(); // error message
   const [isExecuting, setIsExecuting] = useState(false); // for swap button state
+  const [isApproving, setIsApproving] = useState(false); // for swap button state
 
   useEffect(() => {
     const updateOutValue = async () => {
@@ -82,13 +86,9 @@ const SoRadDEX = ({
       setIsSellAmountApproved(false);
       return;
     }
-
-    console.log("tokenFormAmount", tokenFormAmount);
     const tokenFormAmountBN = tokenFormAmount && ethers.utils.parseEther("" + tokenFormAmount);
-    console.log("tokenFormAmountBN", tokenFormAmountBN);
     setIsSellAmountApproved(dexApproval && tokenFormAmount && dexApproval.gte(tokenFormAmountBN));
   }, [tokenFormAmount, readContracts, dexApproval]);
-  console.log("isSellAmountApproved", isSellAmountApproved);
 
   const hasValidTokenSellAmount = !isBuyingToken && swapInValue && swapInValue.gt("0");
   const swapAllowed = swapInValue && swapInValue.gt("0");
@@ -266,30 +266,30 @@ const SoRadDEX = ({
         // _resetAfterSwap();
       }
     : async () => {
-        setIsExecuting(true);
+        setIsApproving(true);
 
         await tx(writeContracts.SoRadToken.approve(readContracts.SoRadDEX.address, swapInValue), update => {
           if (update && (update.error || update.reason)) {
-            setIsExecuting(false);
+            setIsApproving(false);
           }
           if (update && (update.status === "confirmed" || update.status === 1)) {
-            setIsExecuting(false);
+            setIsApproving(false);
             forceUpdate();
           }
           if (update && update.code) {
             // metamask error etc.
-            setIsExecuting(false);
+            setIsApproving(false);
           }
         });
 
         // use this instead of the updates above if the updates are unreliable
-        // setIsExecuting(false);
+        // setIsApproving(false);
         // forceUpdate();
       };
 
   const swapButtonText = isBuyingToken
     ? "Swap"
-    : isSellAmountApproved || !hasValidTokenSellAmount
+    : (isSellAmountApproved || !hasValidTokenSellAmount) && !isApproving
     ? "Swap"
     : "Approve SRT";
   const inputForAsset = (asset, disabled) => (
@@ -338,7 +338,6 @@ const SoRadDEX = ({
     //   updateEthInput("");
     // }
   };
-
   const swapUI = (
     <>
       <div style={{ display: "flex", flexDirection: isBuyingToken ? "column" : "column-reverse" }}>
@@ -370,7 +369,7 @@ const SoRadDEX = ({
           type={"primary"}
           size="large"
           disabled={!swapAllowed}
-          loading={isExecuting}
+          loading={isExecuting || isApproving}
           onClick={isBuyingToken ? swapEthForToken : swapTokenForEth}
         >
           {swapButtonText}
@@ -424,6 +423,7 @@ const SoRadDEX = ({
       className="SoRadDEX FlexCardCol"
     >
       <Card
+        style={{ minWidth: `${dexWidthRem}rem`, margin: "auto", background: swapGradient, minHeight: height ?? "100%" }}
         title={
           <div
             style={{
@@ -452,7 +452,6 @@ const SoRadDEX = ({
             </div>
           </div>
         }
-        style={{ width: "30rem", margin: "auto", background: swapGradient, minHeight: height ?? "100%" }}
       >
         {!readyAll && (
           <div
@@ -472,7 +471,9 @@ const SoRadDEX = ({
             style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}
           >
             {/* SWAP */}
-            <div style={{ display: "flex", alignItems: "stretch", flexDirection: "column", width: "22rem" }}>
+            <div
+              style={{ display: "flex", alignItems: "stretch", flexDirection: "column", width: `${swapWidthRem}rem` }}
+            >
               <div>
                 {priceDisplay}
                 <div>{swapUI}</div>

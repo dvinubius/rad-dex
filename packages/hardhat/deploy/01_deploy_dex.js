@@ -19,7 +19,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const approval = await soRadToken.approve(
     dex.address,
-    ethers.utils.parseEther("100")
+    ethers.utils.parseEther("1")
   );
   await approval.wait();
 
