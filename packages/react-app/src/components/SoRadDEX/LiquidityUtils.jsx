@@ -1,3 +1,5 @@
+const { ethers } = require("ethers");
+
 export const expectedTokenAmountForDeposit = (depositValue, dexTokenBalance, dexEthBalance) => {
   const canCalc = depositValue && dexTokenBalance && dexEthBalance;
   if (!canCalc) throw "cannot calculate expected token for deposit";
@@ -13,7 +15,8 @@ export const maxDepositableEth = (userEthBalance, gasEstimate, userTokenBalance,
   if (!canCalc) return null;
   const maxCuzEthBalance = userEthBalance && gasEstimate && userEthBalance.sub(gasEstimate);
   const maxCuzTokenBalance = depositForExpectedTokenAmount(userTokenBalance, dexTokenBalance, dexEthBalance);
-  return maxCuzEthBalance.gt(maxCuzTokenBalance) ? maxCuzTokenBalance : maxCuzEthBalance;
+  const max = maxCuzEthBalance.gt(maxCuzTokenBalance) ? maxCuzTokenBalance : maxCuzEthBalance;
+  return max.gt(0) ? max : ethers.BigNumber.from("0");
 };
 export const calcExpectedWithdrawOutput = (withdrawValue, dexEthBalance, dexTokenBalance, dexLiquidity) => {
   const canCalc = withdrawValue && dexEthBalance && dexTokenBalance && dexLiquidity;
