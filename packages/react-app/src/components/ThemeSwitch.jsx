@@ -1,14 +1,18 @@
 import { Switch } from "antd";
 import React, { useEffect, useState } from "react";
+import { useContext } from "react";
 import { useThemeSwitcher } from "react-css-theme-switcher";
+import { ThemeContext } from "../App";
 
 export default function ThemeSwitcher() {
+  const { setTheme } = useContext(ThemeContext);
   const theme = window.localStorage.getItem("theme");
   const [isDarkMode, setIsDarkMode] = useState(!(!theme || theme === "light"));
   const { switcher, currentTheme, status, themes } = useThemeSwitcher();
 
   useEffect(() => {
     window.localStorage.setItem("theme", currentTheme);
+    setTheme(currentTheme);
   }, [currentTheme]);
 
   const toggleTheme = isChecked => {

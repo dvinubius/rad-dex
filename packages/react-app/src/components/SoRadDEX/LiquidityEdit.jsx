@@ -1,29 +1,22 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Card, Input, Tooltip } from "antd";
 import { errorCol, nestedCardBGDark, nestedCardBGLight, primaryCol, softTextCol } from "../../styles";
-import { useContractLoader, useContractReader } from "eth-hooks";
 import CustomBalance from "../CustomKit/CustomBalance";
 import { exactFloatToFixed } from "../../helpers/numeric";
 import { calcExpectedWithdrawOutput, expectedTokenAmountForDeposit, maxDepositableEth } from "./LiquidityUtils";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import { DexContext } from "../DEX";
+import { AppContext, ThemeContext } from "../../App";
 const { ethers } = require("ethers");
 
-const LiquidityEdit = ({
-  dexApproval,
-  readContracts,
-  writeContracts,
-  localProvider,
-  contractConfig,
-  tx,
-  userLiquidity,
-  dexLiquidity,
-  dexEthBalance,
-  dexTokenBalance,
-  userEthBalance,
-  userTokenBalance,
-  gasPrice,
-}) => {
-  const isLightTheme = window.localStorage.getItem("theme") === "light";
+const LiquidityEdit = () => {
+  const { readContracts, writeContracts, tx, userEthBalance, gasPrice } = useContext(AppContext);
+
+  const { dexTokenBalance, dexEthBalance, dexApproval, userTokenBalance, userLiquidity } = useContext(DexContext);
+
+  const { theme } = useContext(ThemeContext);
+
+  const isLightTheme = theme === "light";
   const totalWidthRem = 30;
   const rightColWidthRem = 7.5;
 
@@ -60,13 +53,6 @@ const LiquidityEdit = ({
   const depositAllowed = depositValue && depositValue.gt("0");
   const withdrawAllowed = withdrawValue && withdrawValue.gt("0");
 
-  const contracts = useContractLoader(localProvider, contractConfig);
-
-  const dex = useMemo(() => {
-    const { SoRadDEX } = contracts;
-    return SoRadDEX && new ethers.Contract(SoRadDEX.address, SoRadDEX.interface, localProvider);
-  }, [contractConfig, localProvider, contracts]);
-
   const [gasEstimateDeposit, setGasEstimateDeposit] = useState();
   const maxEthDepositable = maxDepositableEth(
     userEthBalance,
@@ -77,7 +63,7 @@ const LiquidityEdit = ({
   );
 
   useEffect(() => {
-    if (!dex || !gasPrice) return;
+    if (!gasPrice) return;
     const getEst = async () => {
       // 30 000  for  approval. to be safe with the estimate we always include this gas cost even if an approval won't be necessary
       let est = 30000;
@@ -85,7 +71,7 @@ const LiquidityEdit = ({
         // hardcoding tx cost because:
         // estimate is not possible without having approval first
         // executing with 0 ether also errors because even a 0 eth deposit involves a token transfer of 1 wei
-        // est = await dex.connect(userSigner).estimateGas.deposit({ value: ethers.utils.parseEther(maxEthDepositable) });
+        // est = await dexContract.connect(userSigner).estimateGas.deposit({ value: ethers.utils.parseEther(maxEthDepositable) });
         est = 80000;
         console.log("estimated gas: ", est.toString());
       } catch (e) {
@@ -97,7 +83,7 @@ const LiquidityEdit = ({
       console.log("estimated gas cost: ", ethers.utils.formatEther(gasCostEstimate.toString()).toString());
     };
     getEst();
-  }, [userEthBalance, gasPrice, dex]);
+  }, [userEthBalance, gasPrice]);
 
   // HACKY HACKY UPDATE
 
@@ -529,22 +515,6 @@ const LiquidityEdit = ({
       }}
     >
       <Card style={{ background: liquidityEditGradient }}>
-        {/* <div style={{}}>
-        <Button
-          type="link"
-          style={{
-            marginLeft: "auto",
-            fontSize: "1rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-          }}
-        >
-          <QuestionCircleOutlined />
-          Help
-        </Button>
-      </div> */}
-
         {readyAll && (
           <>
             <div style={{ marginBottom: "0.25rem" }}>{userBalances}</div>

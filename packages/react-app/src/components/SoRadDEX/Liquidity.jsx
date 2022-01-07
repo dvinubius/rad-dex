@@ -1,28 +1,18 @@
 import { Button, Tabs, Row, Col, Descriptions, Divider, Input, Tooltip } from "antd";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { primaryCol, softBg, softTextCol } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 import LiquidityEdit from "./LiquidityEdit";
 import "./Liquidity.css";
 import { DownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import { DexContext } from "../DEX";
+import { ThemeContext } from "../../App";
 
-const Liquidity = ({
-  tokenBalance,
-  ethBalance,
-  totalLiquidity,
-  userLiquidity,
-  readContracts,
-  localProvider,
-  writeContracts,
-  tx,
-  contractConfig,
-  userEthBalance,
-  userTokenBalance,
-  userSigner,
-  gasPrice,
-  dexApproval,
-}) => {
-  const isLightTheme = window.localStorage.getItem("theme") === "light";
+const Liquidity = ({ dexContext }) => {
+  const { dexTokenBalance, dexEthBalance, dexLiquidity, userLiquidity } = useContext(DexContext);
+  const { theme } = useContext(ThemeContext);
+
+  const isLightTheme = theme === "light";
 
   const valuesColor = "deeppink";
   const mineColor = primaryCol;
@@ -42,9 +32,9 @@ const Liquidity = ({
     justifyContent: "flex-end",
   };
 
-  const canCalculate = userLiquidity && totalLiquidity;
-  const userTokenReserve = canCalculate && userLiquidity.mul(tokenBalance).div(totalLiquidity);
-  const userEthReserve = canCalculate && userLiquidity.mul(ethBalance).div(totalLiquidity);
+  const canCalculate = userLiquidity && dexLiquidity;
+  const userTokenReserve = canCalculate && userLiquidity.mul(dexTokenBalance).div(dexLiquidity);
+  const userEthReserve = canCalculate && userLiquidity.mul(dexEthBalance).div(dexLiquidity);
 
   const [depositsHeight, setDepositsHeight] = useState(0);
   const toggleDepositsVisibility = () => {
@@ -106,14 +96,7 @@ const Liquidity = ({
             <div style={{ ...labelStyle, fontWeight: 500 }}>Total</div>
 
             <div style={balanceWrapperStyle}>
-              <CustomBalance
-                balance={totalLiquidity}
-                etherMode
-                size="1rem"
-                padding={0}
-                noClick
-                customColor={totalCol}
-              />
+              <CustomBalance balance={dexLiquidity} etherMode size="1rem" padding={0} noClick customColor={totalCol} />
             </div>
           </div>
           <Descriptions bordered size="small" style={{ width: "100%" }}>
@@ -121,7 +104,7 @@ const Liquidity = ({
               <Descriptions.Item label={<span style={labelStyle}>{idx === 0 ? "SRT" : "ETH"}</span>} span={6}>
                 <div style={{ ...balanceWrapperStyle, opacity: 0.8 }}>
                   <CustomBalance
-                    balance={idx === 0 ? tokenBalance : ethBalance}
+                    balance={idx === 0 ? dexTokenBalance : dexEthBalance}
                     etherMode
                     customSymbol=""
                     size="1rem"
@@ -223,21 +206,7 @@ const Liquidity = ({
           transition: "all 0.3s ease-out",
         }}
       >
-        <LiquidityEdit
-          dexApproval={dexApproval}
-          localProvider={localProvider}
-          readContracts={readContracts}
-          writeContracts={writeContracts}
-          contractConfig={contractConfig}
-          tx={tx}
-          userLiquidity={userLiquidity}
-          dexLiquidity={totalLiquidity}
-          dexEthBalance={ethBalance}
-          dexTokenBalance={tokenBalance}
-          userEthBalance={userEthBalance}
-          userTokenBalance={userTokenBalance}
-          gasPrice={gasPrice}
-        />
+        <LiquidityEdit />
       </div>
     </div>
   );

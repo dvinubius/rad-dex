@@ -1,6 +1,5 @@
-import React, { useMemo } from "react";
-import { Button, Card, Divider, Input, Spin, Tabs } from "antd";
-import { useBalance, useContractLoader, useContractReader } from "eth-hooks";
+import React, { useContext } from "react";
+import { Button, Card, Divider, Input, Spin } from "antd";
 import { useEffect, useState } from "react";
 import { LinkOutlined, SwapOutlined, ArrowDownOutlined } from "@ant-design/icons";
 
@@ -12,36 +11,27 @@ import { exactFloatToFixed, printTPE } from "../../helpers/numeric";
 import SectionTitle from "../CustomKit/SectionTitle";
 import Liquidity from "./Liquidity";
 import SoRadIcon from "../SoRadToken/SoRadIcon";
+import { DexContext } from "../DEX";
+import { AppContext } from "../../App";
 
 const { ethers } = require("ethers");
 
-const SoRadDEX = ({
-  dexAddress,
-  userTokenBalance,
-  readContracts,
-  writeContracts,
-  contractConfig,
-  localProvider,
-  userSigner,
-  price,
-  gasPrice,
-  tx,
-  userAddress,
-  userEthBalance,
-  height,
-  tokensPerEth,
-  totalLiquidity,
-  userLiquidity,
-  updateEthInput,
-  updateTokenInput,
-}) => {
+const SoRadDEX = ({ height, updateEthInput, updateTokenInput }) => {
+  const { readContracts, writeContracts, userSigner, gasPrice, tx, userEthBalance } = useContext(AppContext);
+
+  const {
+    tokenAddress,
+    dexAddress,
+    dexTokenBalance,
+    dexEthBalance,
+    tokensPerEth,
+    dexApproval,
+    userTokenBalance,
+    dexContract,
+  } = useContext(DexContext);
+
   const swapWidthRem = 22;
   const dexWidthRem = 32;
-
-  const tokenAddress = readContracts.SoRadToken.address;
-  const dexETHBalance = useBalance(localProvider, dexAddress);
-  const dexApproval = useContractReader(readContracts, "SoRadToken", "allowance", [userAddress, dexAddress]);
-  const dexTokenBalance = useContractReader(readContracts, "SoRadToken", "balanceOf", [dexAddress]);
 
   // ========== DERIVED & OWN STATE =========== //
 
@@ -63,20 +53,20 @@ const SoRadDEX = ({
       if (isBuyingToken) {
         // ETH => SRT, entering ETH
         const ethValue = swapInValue;
-        const expectedTokenValue = await readContracts.SoRadDEX.price(ethValue, dexETHBalance, dexTokenBalance);
+        const expectedTokenValue = await readContracts.SoRadDEX.price(ethValue, dexEthBalance, dexTokenBalance);
         setTokenFormAmount(printTPE(expectedTokenValue, 4));
       } else {
         // SRT => ETH, entering SRT
         const tokenValue = swapInValue;
-        const expectedEthValue = await readContracts.SoRadDEX.price(tokenValue, dexTokenBalance, dexETHBalance);
+        const expectedEthValue = await readContracts.SoRadDEX.price(tokenValue, dexTokenBalance, dexEthBalance);
         setEthFormAmount(printTPE(expectedEthValue, 4));
       }
     };
 
-    if (readContracts && readContracts.SoRadDEX && dexETHBalance && dexTokenBalance && swapInValue) {
+    if (readContracts && readContracts.SoRadDEX && dexEthBalance && dexTokenBalance && swapInValue) {
       updateOutValue();
     }
-  }, [readContracts, dexETHBalance, dexTokenBalance, swapInValue, isBuyingToken]);
+  }, [readContracts, dexEthBalance, dexTokenBalance, swapInValue, isBuyingToken]);
 
   const [isSellAmountApproved, setIsSellAmountApproved] = useState();
 
@@ -95,22 +85,15 @@ const SoRadDEX = ({
   const hasValidTokenSellAmount = !isBuyingToken && swapInValue && swapInValue.gt("0");
   const swapAllowed = swapInValue && swapInValue.gt("0");
 
-  const contracts = useContractLoader(localProvider, contractConfig);
-
-  const dex = useMemo(() => {
-    const { SoRadDEX } = contracts;
-    return SoRadDEX && new ethers.Contract(SoRadDEX.address, SoRadDEX.interface, localProvider);
-  }, [contractConfig, localProvider, contracts]);
-
   const [gasEstimateBuy, setGasEstimateBuy] = useState();
   const maxEthSpendable = userEthBalance && gasEstimateBuy && userEthBalance.sub(gasEstimateBuy);
 
   useEffect(() => {
-    if (!dex || !gasPrice) return;
+    if (!dexContract || !gasPrice) return;
     const getEst = async () => {
       let est;
       try {
-        est = await dex.connect(userSigner).estimateGas.buyTokens({ value: userEthBalance });
+        est = await dexContract.connect(userSigner).estimateGas.buyTokens({ value: userEthBalance });
         console.log("estimated gas: ", est.toString());
       } catch (e) {
         console.log("failed gas estimation");
@@ -121,7 +104,7 @@ const SoRadDEX = ({
       console.log("estimated gas cost: ", ethers.utils.formatEther(gasCostEstimate.toString()).toString());
     };
     getEst();
-  }, [userEthBalance, gasPrice, dex]);
+  }, [userEthBalance, gasPrice, dexContract]);
 
   // HACKY HACKY UPDATE
 
@@ -129,7 +112,7 @@ const SoRadDEX = ({
   const forceUpdate = React.useCallback(() => updateState({}), []);
 
   const readyAll =
-    dexETHBalance &&
+    dexEthBalance &&
     dexApproval &&
     dexTokenBalance &&
     userTokenBalance &&
@@ -338,13 +321,6 @@ const SoRadDEX = ({
     const newStateIsBuying = !isBuyingToken;
     setIsBuyingToken(newStateIsBuying);
     _resetAfterSwap();
-    // if (newStateIsBuying) {
-    //   updateTokenInput("");
-    //   updateEthInput(ethFormAmount);
-    // } else {
-    //   updateTokenInput(tokenFormAmount);
-    //   updateEthInput("");
-    // }
   };
   const swapUI = (
     <>
@@ -456,7 +432,12 @@ const SoRadDEX = ({
       className="SoRadDEX FlexCardCol"
     >
       <Card
-        style={{ minWidth: `${dexWidthRem}rem`, margin: "auto", background: swapGradient, minHeight: height ?? "100%" }}
+        style={{
+          minWidth: `${dexWidthRem}rem`,
+          margin: "auto",
+          background: swapGradient,
+          minHeight: height ?? "100%",
+        }}
         title={
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             {titleWithLink(
@@ -485,7 +466,12 @@ const SoRadDEX = ({
         )}
         {readyAll && (
           <div
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
             {/* SWAP */}
             <div
@@ -499,22 +485,7 @@ const SoRadDEX = ({
             <div style={{ alignSelf: "stretch", marginTop: "1rem" }}>
               <Divider orientation="left">LIQUIDITY</Divider>
 
-              <Liquidity
-                totalLiquidity={totalLiquidity}
-                userLiquidity={userLiquidity}
-                dexApproval={dexApproval}
-                tokenBalance={dexTokenBalance}
-                ethBalance={dexETHBalance}
-                readContracts={readContracts}
-                localProvider={localProvider}
-                writeContracts={writeContracts}
-                tx={tx}
-                contractConfig={contractConfig}
-                userEthBalance={userEthBalance}
-                userTokenBalance={userTokenBalance}
-                userSigner={userSigner}
-                gasPrice={gasPrice}
-              />
+              <Liquidity />
             </div>
           </div>
         )}

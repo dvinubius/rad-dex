@@ -1,10 +1,13 @@
 import { ArrowRightOutlined, LineOutlined } from "@ant-design/icons";
-import React, { useRef, useEffect } from "react";
-import { curveGradient, softTextCol, swapGradient } from "../styles";
+import React, { useRef, useEffect, useContext } from "react";
+import { ThemeContext } from "../App";
+import { curveGradient } from "../styles";
 
 export default function Curve({ addingEth, addingToken, ethReserve, tokenReserve, width, height }) {
+  const { theme } = useContext(ThemeContext);
+
   let ref = useRef();
-  const isLightTheme = window.localStorage.getItem("theme") === "light";
+  const isLightTheme = theme === "light";
 
   const drawArrow = (ctx, x1, y1, x2, y2) => {
     let [dx, dy] = [x1 - x2, y1 - y2];

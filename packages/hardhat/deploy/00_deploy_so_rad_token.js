@@ -20,8 +20,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   const soRadToken = await ethers.getContract("SoRadToken", deployer);
 
-  // const devAddr = "0x967752A2a06b0bD0519A08d496D988BcC6156CD7"; // localhost
-  const devAddr = "0x281f0d74Fa356C17E36603995e0f50D298d4a5A9"; // rinkeby
+  const devAddr = "0x967752A2a06b0bD0519A08d496D988BcC6156CD7"; // localhost
+  // const devAddr = "0x281f0d74Fa356C17E36603995e0f50D298d4a5A9"; // rinkeby
   console.log(`\n 🏵  Sending 10 tokens to ${devAddr}...\n`);
   const transfer = await soRadToken.transfer(
     devAddr,

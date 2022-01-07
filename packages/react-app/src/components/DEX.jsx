@@ -1,31 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { ethers } from "ethers";
-import { Row, Col, Input, Divider } from "antd";
 import Curve from "./Curve";
-import { useBalance, useContractReader } from "eth-hooks";
+import { useBalance, useContractLoader, useContractReader } from "eth-hooks";
 import SoRadDEX from "./SoRadDEX/SoRadDEX";
+import { AppContext } from "../App";
+import { createContext } from "react";
 
 const contractName = "SoRadDEX";
 const tokenName = "SoRadToken";
 
-export default function DEX({
-  userAddress,
-  dexAddress,
-  readContracts,
-  tx,
-  localProvider,
-  writeContracts,
-  contractConfig,
-  userEthBalance,
-  userSigner,
-  price,
-  gasPrice,
-}) {
-  const userTokenBalance = useContractReader(readContracts, "SoRadToken", "balanceOf", [userAddress]);
+export const DexContext = createContext({});
+
+export default function DEX() {
+  const { readContracts, localProvider, userAddress, contractConfig } = useContext(AppContext);
+
+  const tokenAddress = readContracts.SoRadToken.address;
+
+  const dexAddress = readContracts && readContracts.SoRadDEX && readContracts.SoRadDEX.address;
   const dexTokenBalance = useContractReader(readContracts, tokenName, "balanceOf", [dexAddress]);
   const dexTokenBalanceFloat = dexTokenBalance && parseFloat(ethers.utils.formatEther(dexTokenBalance).toString());
   const dexEthBalance = useBalance(localProvider, dexAddress);
   const dexEthBalanceFloat = parseFloat(ethers.utils.formatEther(dexEthBalance));
+
+  const dexApproval = useContractReader(readContracts, "SoRadToken", "allowance", [userAddress, dexAddress]);
+  const userTokenBalance = useContractReader(readContracts, "SoRadToken", "balanceOf", [userAddress]);
 
   const [tokensPerEth, setTokensPerEth] = useState();
   useEffect(() => {
@@ -39,34 +37,37 @@ export default function DEX({
     }
   }, [readContracts, dexEthBalance, dexTokenBalance]);
 
-  const totalLiquidity = useContractReader(readContracts, contractName, "totalLiquidity");
+  const dexLiquidity = useContractReader(readContracts, contractName, "totalLiquidity");
   const userLiquidity = useContractReader(readContracts, contractName, "liquidity", [userAddress]);
 
   const [addingEth, setAddingEth] = useState();
   const [addingToken, setAddingToken] = useState();
 
+  const contracts = useContractLoader(localProvider, contractConfig);
+
+  const dexContract = useMemo(() => {
+    const { SoRadDEX } = contracts;
+    return SoRadDEX && new ethers.Contract(SoRadDEX.address, SoRadDEX.interface, localProvider);
+  }, [contractConfig, localProvider, contracts]);
+
+  const dexContext = {
+    tokenAddress,
+    dexAddress,
+    dexTokenBalance,
+    dexEthBalance,
+    dexLiquidity,
+    userLiquidity,
+    tokensPerEth,
+    dexApproval,
+    userTokenBalance,
+    dexContract,
+  };
+
   return (
     <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start", gap: "2rem" }}>
-      <SoRadDEX
-        localProvider={localProvider}
-        contractConfig={contractConfig}
-        readContracts={readContracts}
-        writeContracts={writeContracts}
-        dexAddress={dexAddress}
-        userSigner={userSigner}
-        userTokenBalance={userTokenBalance}
-        userAddress={userAddress}
-        price={price}
-        gasPrice={gasPrice}
-        tx={tx}
-        userEthBalance={userEthBalance}
-        tokensPerEth={tokensPerEth}
-        totalLiquidity={totalLiquidity}
-        userLiquidity={userLiquidity}
-        height={490}
-        updateEthInput={setAddingEth}
-        updateTokenInput={setAddingToken}
-      />
+      <DexContext.Provider value={dexContext}>
+        <SoRadDEX height={490} updateEthInput={setAddingEth} updateTokenInput={setAddingToken} />
+      </DexContext.Provider>
       <div style={{ alignSelf: "flex-start" }}>
         <Curve
           addingEth={addingEth}
