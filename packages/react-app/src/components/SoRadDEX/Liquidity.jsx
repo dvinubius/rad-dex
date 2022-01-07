@@ -1,6 +1,6 @@
 import { Button, Tabs, Row, Col, Descriptions, Divider, Input, Tooltip } from "antd";
 import React, { useContext, useState } from "react";
-import { primaryCol, softBg, softTextCol } from "../../styles";
+import { primaryCol, softBg, softTextCol, nestedCardBGDark, nestedCardBGLight } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 import LiquidityEdit from "./LiquidityEdit";
 import "./Liquidity.css";
@@ -173,7 +173,22 @@ const Liquidity = ({ dexContext }) => {
               background: softBg,
             }}
           >
-            <div style={{ textAlign: "center", flexGrow: 1 }}>Manage</div>
+            <div
+              style={{
+                textAlign: "center",
+                flexGrow: 1,
+                background: isLightTheme ? nestedCardBGLight : nestedCardBGDark,
+                height: "calc(100% - 2px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderTop: `1px solid ${isLightTheme ? "#dedede" : "#666"}`,
+                borderLeft: `1px solid ${isLightTheme ? "#dedede" : "#666"}`,
+                borderBottom: `1px solid ${isLightTheme ? "#dedede" : "#666"}`,
+              }}
+            >
+              Manage
+            </div>
             <Button
               type="default"
               style={{

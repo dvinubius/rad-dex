@@ -40,8 +40,8 @@ export default function DEX() {
   const dexLiquidity = useContractReader(readContracts, contractName, "totalLiquidity");
   const userLiquidity = useContractReader(readContracts, contractName, "liquidity", [userAddress]);
 
-  const [addingEth, setAddingEth] = useState();
-  const [addingToken, setAddingToken] = useState();
+  const [ethInputForCurve, setEthInputForCurve] = useState();
+  const [tokenInputForCurve, setTokenInputForCurve] = useState();
 
   const contracts = useContractLoader(localProvider, contractConfig);
 
@@ -61,17 +61,19 @@ export default function DEX() {
     dexApproval,
     userTokenBalance,
     dexContract,
+    setEthInputForCurve,
+    setTokenInputForCurve,
   };
 
   return (
     <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start", gap: "2rem" }}>
       <DexContext.Provider value={dexContext}>
-        <SoRadDEX height={490} updateEthInput={setAddingEth} updateTokenInput={setAddingToken} />
+        <SoRadDEX height={490} />
       </DexContext.Provider>
       <div style={{ alignSelf: "flex-start" }}>
         <Curve
-          addingEth={addingEth}
-          addingToken={addingToken}
+          addingEth={ethInputForCurve}
+          addingToken={tokenInputForCurve}
           ethReserve={dexEthBalanceFloat}
           tokenReserve={dexTokenBalanceFloat}
           width={480}

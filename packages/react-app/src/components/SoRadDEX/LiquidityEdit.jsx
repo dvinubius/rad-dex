@@ -12,7 +12,8 @@ const { ethers } = require("ethers");
 const LiquidityEdit = () => {
   const { readContracts, writeContracts, tx, userEthBalance, gasPrice } = useContext(AppContext);
 
-  const { dexTokenBalance, dexEthBalance, dexApproval, userTokenBalance, userLiquidity } = useContext(DexContext);
+  const { dexTokenBalance, dexEthBalance, dexApproval, userTokenBalance, userLiquidity, dexLiquidity } =
+    useContext(DexContext);
 
   const { theme } = useContext(ThemeContext);
 
