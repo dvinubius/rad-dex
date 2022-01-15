@@ -23,7 +23,7 @@
   backdrop-filter: blur(2px);
   border: 1px solid hsla(0deg, 0%, 50%, 0.2);
   z-index: 10;
-  display: "flex";
+  display: flex;
   align-items: center;
 }
 
