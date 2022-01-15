@@ -14,13 +14,20 @@ import { ethers } from "ethers";
 
 const isENS = (address = "") => address.endsWith(".eth") || address.endsWith(".xyz");
 
-export default function CustomAddressInput(props) {
-  const { ensProvider, onChange } = props;
-  const [value, setValue] = useState(props.value);
+export default function CustomAddressInput({
+  value,
+  wrapperStyle,
+  autoFocus,
+  placeholder,
+  ensProvider,
+  size,
+  onChange,
+}) {
+  const [valueToUse, setValue] = useState(value);
   const [scan, setScan] = useState(false);
 
-  const currentValue = typeof props.value !== "undefined" ? props.value : value;
-  const ens = useLookupAddress(props.ensProvider, currentValue);
+  const currentValue = typeof value !== "undefined" ? value : valueToUse;
+  const ens = useLookupAddress(ensProvider, currentValue);
 
   const updateAddress = useCallback(
     async newValue => {
@@ -45,7 +52,7 @@ export default function CustomAddressInput(props) {
   );
 
   return (
-    <div>
+    <div style={wrapperStyle}>
       {scan ? (
         <div
           style={{
@@ -88,14 +95,14 @@ export default function CustomAddressInput(props) {
         id="0xAddress" // name it something other than address for auto fill doxxing
         name="0xAddress" // name it something other than address for auto fill doxxing
         autoComplete="off"
-        autoFocus={props.autoFocus}
-        placeholder={props.placeholder ? props.placeholder : "address"}
+        autoFocus={autoFocus}
+        placeholder={placeholder ? placeholder : "address"}
         prefix={<Blockie address={currentValue} size={8} scale={3} />}
         value={ethers.utils.isAddress(currentValue) && !isENS(currentValue) && isENS(ens) ? ens : currentValue}
-        size={props.size === "large" ? "large" : "medium"}
+        size={size === "large" ? "large" : "medium"}
         addonAfter={
           <div
-            style={{ marginTop: 4, cursor: "pointer" }}
+            style={{ marginTop: 4, cursor: "pointer", width: "3.5rem" }}
             onClick={() => {
               setScan(!scan);
             }}

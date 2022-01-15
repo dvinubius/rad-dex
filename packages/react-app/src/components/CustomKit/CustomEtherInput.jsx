@@ -6,12 +6,12 @@ import React, { useEffect, useState } from "react";
   Changed so that it can be initialized with etherMode via props
 */
 
-export default function CustomEtherInput(props) {
-  const [mode, setMode] = useState(props.etherMode ? "ETH" : props.price ? "USD" : "ETH");
+export default function CustomEtherInput({ etherMode, price, value, wrapperStyle, placeholder, autoFocus, onChange }) {
+  const [mode, setMode] = useState(etherMode ? "ETH" : price ? "USD" : "ETH");
   const [display, setDisplay] = useState();
-  const [value, setValue] = useState();
+  const [valueToUse, setValue] = useState();
 
-  const currentValue = typeof props.value !== "undefined" ? props.value : value;
+  const currentValue = typeof value !== "undefined" ? value : valueToUse;
 
   useEffect(() => {
     if (!currentValue) {
@@ -21,16 +21,17 @@ export default function CustomEtherInput(props) {
 
   return (
     <Input
-      placeholder={props.placeholder ? props.placeholder : "amount in " + mode}
-      autoFocus={props.autoFocus}
+      style={{ ...wrapperStyle }}
+      placeholder={placeholder ? placeholder : "amount in " + mode}
+      autoFocus={autoFocus}
       prefix={mode === "USD" ? "$" : "Ξ"}
       value={display}
       addonAfter={
-        !props.price ? (
+        !price ? (
           ""
         ) : (
           <div
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", width: "3.5rem" }}
             onClick={() => {
               if (mode === "USD") {
                 setMode("ETH");
@@ -38,7 +39,7 @@ export default function CustomEtherInput(props) {
               } else {
                 setMode("USD");
                 if (currentValue) {
-                  const usdValue = "" + (parseFloat(currentValue) * props.price).toFixed(2);
+                  const usdValue = "" + (parseFloat(currentValue) * price).toFixed(2);
                   setDisplay(usdValue);
                 } else {
                   setDisplay(currentValue);
@@ -55,10 +56,10 @@ export default function CustomEtherInput(props) {
         if (mode === "USD") {
           const possibleNewValue = parseFloat(newValue);
           if (possibleNewValue) {
-            const ethValue = possibleNewValue / props.price;
+            const ethValue = possibleNewValue / price;
             setValue(ethValue);
-            if (typeof props.onChange === "function") {
-              props.onChange(ethValue, mode);
+            if (typeof onChange === "function") {
+              onChange(ethValue, mode);
             }
             setDisplay(newValue);
           } else {
@@ -66,8 +67,8 @@ export default function CustomEtherInput(props) {
           }
         } else {
           setValue(newValue);
-          if (typeof props.onChange === "function") {
-            props.onChange(newValue, mode);
+          if (typeof onChange === "function") {
+            onChange(newValue, mode);
           }
           setDisplay(newValue);
         }

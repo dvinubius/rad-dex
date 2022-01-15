@@ -1,0 +1,13 @@
+.CustomHeader {
+  position: relative;
+}
+.CustomHeader::after {
+  position: absolute;
+  content: "";
+  left: 0;
+  bottom: calc(-2rem - 1px);
+  width: 100vw;
+  height: 2rem;
+  background: linear-gradient(hsla(0, 0%, 100%), transparent);
+  z-index: 100;
+}

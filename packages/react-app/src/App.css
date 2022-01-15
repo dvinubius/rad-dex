@@ -8,13 +8,13 @@
 .AppScroller {
   flex: 1;
   overflow-y: scroll;
-  padding-bottom: 10rem;
+  padding: 0 2rem 10rem;
 }
+
 .AppCenteredCol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 2rem;
 }
 
 .hud {
@@ -22,6 +22,9 @@
   background-color: var(--glassColor);
   backdrop-filter: blur(2px);
   border: 1px solid hsla(0deg, 0%, 50%, 0.2);
+  z-index: 10;
+  display: "flex";
+  align-items: center;
 }
 
 .hudBottom {

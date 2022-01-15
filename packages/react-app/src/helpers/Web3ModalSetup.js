@@ -32,6 +32,7 @@ const web3ModalSetup = () =>
           rpc: {
             1: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_KEY}`, // mainnet // For more WalletConnect providers: https://docs.walletconnect.org/quick-start/dapps/web3-provider#required
             42: `https://kovan.infura.io/v3/${INFURA_ID}`,
+            4: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
             100: "https://dai.poa.network", // xDai
           },
         },

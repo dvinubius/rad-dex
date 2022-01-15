@@ -14,26 +14,36 @@ import "./CustomAddress.css";
 
 const { Text } = Typography;
 
-const blockExplorerLink = (address, blockExplorer) => blockExplorer || `https://etherscan.io/address/${address}`;
+const blockExplorerLink = (address, blockExplorer) =>
+  `${blockExplorer || "https://etherscan.io/"}${"address/"}${address}`;
 
-export default function CustomAddress(props) {
+export default function CustomAddress({
+  value,
+  onChange,
+  noBlockie,
+  fontSize,
+  address,
+  ensProvider,
+  blockExplorer,
+  size,
+}) {
   const { currentTheme } = useThemeSwitcher();
-  const address = props.value || props.address;
-  const ens = useLookupAddress(props.ensProvider, address);
+  const addr = value || address;
+  const ens = useLookupAddress(ensProvider, addr);
   const ensSplit = ens && ens.split(".");
   const validEnsCheck = ensSplit && ensSplit[ensSplit.length - 1] === "eth";
-  const etherscanLink = blockExplorerLink(address, props.blockExplorer);
-  let displayAddress = address?.substr(0, 5) + "..." + address?.substr(-4);
+  const etherscanLink = blockExplorerLink(addr, blockExplorer);
+  let displayAddress = addr?.substr(0, 5) + "..." + addr?.substr(-4);
 
   if (validEnsCheck) {
     displayAddress = ens;
-  } else if (props.size === "short") {
-    displayAddress += "..." + address.substr(-4);
-  } else if (props.size === "long") {
-    displayAddress = address;
+  } else if (size === "short") {
+    displayAddress += "..." + addr.substr(-4);
+  } else if (size === "long") {
+    displayAddress = addr;
   }
 
-  if (!address) {
+  if (!addr) {
     return (
       <span>
         <Skeleton avatar paragraph={{ rows: 1 }} />
@@ -41,36 +51,14 @@ export default function CustomAddress(props) {
     );
   }
 
-  if (props.minimized) {
-    return (
-      <span style={{ verticalAlign: "middle" }}>
-        <a
-          style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
-          target="_blank"
-          href={etherscanLink}
-          rel="noopener noreferrer"
-        >
-          <Blockies seed={address.toLowerCase()} size={8} scale={2} />
-        </a>
-      </span>
-    );
-  }
-
-  const catchEvent = e => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
   return (
-    <span style={{ display: "inline-flex", alignItems: "center" }} onClick={catchEvent} className="CustomAddress">
+    <span style={{ display: "inline-flex", alignItems: "center", width: "max-content" }} className={`CustomAddress`}>
       <span style={{ display: "inline-flex", alignItems: "center" }}>
-        {!props.noBlockie && (
-          <Blockies seed={address.toLowerCase()} size={8} scale={props.fontSize ? props.fontSize / 7 : 4} />
-        )}
+        {!noBlockie && <Blockies seed={addr.toLowerCase()} size={8} scale={fontSize ? fontSize / 7 : 4} />}
       </span>
-      <span style={{ paddingLeft: 5, fontSize: props.fontSize ? props.fontSize : 28 }}>
-        {props.onChange ? (
-          <Text editable={{ onChange: props.onChange }} copyable={{ text: address }}>
+      <span style={{ paddingLeft: 5, fontSize: fontSize ? fontSize : 28 }}>
+        {onChange ? (
+          <Text editable={{ onChange: onChange }} copyable={{ text: addr }}>
             <a
               style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
               target="_blank"
@@ -81,7 +69,7 @@ export default function CustomAddress(props) {
             </a>
           </Text>
         ) : (
-          <Text copyable={{ text: address }}>
+          <Text copyable={{ text: addr }}>
             <a
               style={{ color: currentTheme === "light" ? "#222222" : "#ddd" }}
               target="_blank"

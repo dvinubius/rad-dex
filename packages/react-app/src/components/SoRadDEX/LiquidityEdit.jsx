@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Card, Input, Tooltip } from "antd";
-import { errorCol, nestedCardBGDark, nestedCardBGLight, primaryCol, softTextCol } from "../../styles";
+import { errorColor, nestedCardBGDark, nestedCardBGLight, primaryColor, softTextColor } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 import { exactFloatToFixed } from "../../helpers/numeric";
 import { calcExpectedWithdrawOutput, expectedTokenAmountForDeposit, maxDepositableEth } from "./LiquidityUtils";
@@ -203,7 +203,7 @@ const LiquidityEdit = () => {
 
   const liquidityInput = type => {
     const isDisabled = type === "withdraw" && userLiquidity && userLiquidity.eq(0);
-    const suffixBalanceCol = type === "deposit" || isDisabled ? softTextCol : primaryCol;
+    const suffixBalanceCol = type === "deposit" || isDisabled ? softTextColor : primaryColor;
     return (
       <Input
         size="large"
@@ -215,7 +215,7 @@ const LiquidityEdit = () => {
             {type === "deposit" ? (
               "ETH"
             ) : (
-              <span style={{ color: isDisabled ? softTextCol : primaryCol }}>
+              <span style={{ color: isDisabled ? softTextColor : primaryColor }}>
                 <span>Ξ</span>
                 {/* <span style={{ visibility: "hidden" }}>T</span>
               <span style={{ visibility: "hidden" }}>H</span> */}
@@ -226,7 +226,7 @@ const LiquidityEdit = () => {
         suffix={
           <span
             style={{
-              color: softTextCol,
+              color: softTextColor,
               cursor: "pointer",
               transition: "opacity 0.1s ease-out",
             }}
@@ -286,12 +286,12 @@ const LiquidityEdit = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.25rem",
-              color: primaryCol,
+              color: primaryColor,
               opacity: 0.8,
               fontSize: "0.875rem",
             }}
           >
-            {assetBalance("srt", expectedTransferAmount, undefined, primaryCol)}
+            {assetBalance("srt", expectedTransferAmount, undefined, primaryColor)}
           </div>
         )}
       </div>
@@ -311,7 +311,7 @@ const LiquidityEdit = () => {
       >
         {error && (
           <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-            <div style={{ color: errorCol }}>{error}</div>
+            <div style={{ color: errorColor }}>{error}</div>
           </div>
         )}
       </div>
@@ -350,7 +350,7 @@ const LiquidityEdit = () => {
             title={help}
             overlayInnerStyle={{ width: "22rem", backgroundColor: tooltipBG, color: tooltipCol, opacity: 0.9 }}
           >
-            <QuestionCircleOutlined style={{ fontSize: "0.875rem", flexGrow: 1, color: softTextCol }} />
+            <QuestionCircleOutlined style={{ fontSize: "0.875rem", flexGrow: 1, color: softTextColor }} />
           </Tooltip>
           <div style={{ width: `${rightColWidthRem}rem` }}></div>
         </div>
@@ -358,7 +358,7 @@ const LiquidityEdit = () => {
     );
   };
 
-  const assetBalance = (asset, value, fontSize = 14, color = softTextCol) => (
+  const assetBalance = (asset, value, fontSize = 14, color = softTextColor) => (
     <span
       style={{
         color: color,
@@ -403,12 +403,12 @@ const LiquidityEdit = () => {
             alignItems: "center",
             justifyContent: "space-between",
             flexGrow: 1,
-            color: softTextCol,
+            color: softTextColor,
             opacity: 0.8,
           }}
         >
-          {assetBalance("eth", ethPart, undefined, primaryCol)}- Receive -
-          {assetBalance("srt", srtPart, undefined, primaryCol)}
+          {assetBalance("eth", ethPart, undefined, primaryColor)}- Receive -
+          {assetBalance("srt", srtPart, undefined, primaryColor)}
         </div>
         <div style={{ width: `${rightColWidthRem}rem` }}>{""}</div>
       </div>
@@ -445,7 +445,7 @@ const LiquidityEdit = () => {
           alignItems: "center",
           justifyContent: "space-between",
           flexGrow: 1,
-          color: softTextCol,
+          color: softTextColor,
           opacity: 0.8,
         }}
       >

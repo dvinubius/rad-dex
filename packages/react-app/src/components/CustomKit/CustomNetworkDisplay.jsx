@@ -1,6 +1,7 @@
 import { Alert, Button } from "antd";
 import React from "react";
 import { NETWORK } from "../../constants";
+import { mediumBorder, mediumBorder2, mediumBorder3, softBorder2, softBorder2Col } from "../../styles";
 
 /**
  * Based on NetworkDisplay from scaffold-eth buidl kit
@@ -13,7 +14,7 @@ function CustomNetworkDisplay({ NETWORKCHECK, localChainId, selectedChainId, tar
     const networkLocal = NETWORK(localChainId);
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 55, padding: 16 }}>
           <Alert
             message="⚠️ Wrong Network ID"
             description={
@@ -31,7 +32,7 @@ function CustomNetworkDisplay({ NETWORKCHECK, localChainId, selectedChainId, tar
     } else {
       const showLogout = networkSelected && networkSelected.name !== "localhost";
       networkDisplay = (
-        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
+        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 55, padding: 16 }}>
           <Alert
             message="⚠️ Wrong Network"
             description={
@@ -89,15 +90,16 @@ function CustomNetworkDisplay({ NETWORKCHECK, localChainId, selectedChainId, tar
     networkDisplay = (
       <div
         style={{
-          zIndex: 0,
-          position: "absolute",
-          fontSize: "1rem",
-          right: 18,
-          top: 65,
-          padding: "3px 8px 3px",
+          fontSize: "0.875rem",
+          padding: "0.125rem 1rem 0.125rem 0.75rem",
+          backgroundColor: "hsla(0,0%,100%, 0.9)",
+          height: "30px",
+          display: "flex",
+          alignItems: "center",
           color: "rgb(24, 144, 255)",
-          border: "1px solid hsl(209, 10%, 85%)",
-          borderTop: "0px solid black",
+          borderTop: mediumBorder3,
+          borderLeft: mediumBorder3,
+          borderBottom: mediumBorder3,
         }}
       >
         {targetNetwork.name}

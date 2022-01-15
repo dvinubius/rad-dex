@@ -1,6 +1,6 @@
 import { Button, Tabs, Row, Col, Descriptions, Divider, Input, Tooltip } from "antd";
 import React, { useContext, useState } from "react";
-import { primaryCol, softBg, softTextCol, nestedCardBGDark, nestedCardBGLight } from "../../styles";
+import { primaryColor, softBg, softTextColor, nestedCardBGDark, nestedCardBGLight } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 import LiquidityEdit from "./LiquidityEdit";
 import "./Liquidity.css";
@@ -15,7 +15,7 @@ const Liquidity = ({ dexContext }) => {
   const isLightTheme = theme === "light";
 
   const valuesColor = "deeppink";
-  const mineColor = primaryCol;
+  const mineColor = primaryColor;
 
   const labelCol = "hsl(0, 0%, 40%)";
   const totalCol = valuesColor;
@@ -70,7 +70,7 @@ const Liquidity = ({ dexContext }) => {
           opacity: 0.9,
         }}
       >
-        <QuestionCircleOutlined style={{ fontSize: "0.875rem", flexGrow: 1, color: softTextCol }} />
+        <QuestionCircleOutlined style={{ fontSize: "0.875rem", flexGrow: 1, color: softTextColor }} />
       </Tooltip>
     </div>
   );
@@ -153,7 +153,7 @@ const Liquidity = ({ dexContext }) => {
                     size="1rem"
                     padding={0}
                     noClick
-                    customColor={primaryCol}
+                    customColor={primaryColor}
                   />
                 </div>
               </Descriptions.Item>
@@ -168,7 +168,7 @@ const Liquidity = ({ dexContext }) => {
               marginTop: "1rem",
               marginLeft: "auto",
               width: "9rem",
-              color: softTextCol,
+              color: softTextColor,
               borderRadius: "0.25rem",
               background: softBg,
             }}
@@ -196,7 +196,7 @@ const Liquidity = ({ dexContext }) => {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "0.5rem",
-                color: softTextCol,
+                color: softTextColor,
                 padding: "0.5rem",
               }}
               onClick={toggleDepositsVisibility}

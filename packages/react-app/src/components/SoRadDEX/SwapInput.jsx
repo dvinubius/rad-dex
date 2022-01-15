@@ -1,6 +1,6 @@
 import { Input } from "antd";
 import React from "react";
-import { softTextCol } from "../../styles";
+import { softTextColor } from "../../styles";
 import CustomBalance from "../CustomKit/CustomBalance";
 
 const SwapInput = ({ prefix, disabled, inputValue, maxInput, onChange, onApplyMax }) => {
@@ -13,7 +13,7 @@ const SwapInput = ({ prefix, disabled, inputValue, maxInput, onChange, onApplyMa
       suffix={
         <span
           style={{
-            color: softTextCol,
+            color: softTextColor,
             marginRight: "0.5rem",
             cursor: disabled ? "not-allowed" : "pointer",
             opacity: disabled ? 0.6 : 1,
