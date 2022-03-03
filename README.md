@@ -10,6 +10,9 @@ For questions DM me on Twitter [@dvinubius](https://twitter.com/messages/compose
 
 ## Live on [Rinkeby](https://minimum-rad-dex.surge.sh) 🤩
 
+![rad_dex](https://user-images.githubusercontent.com/32189942/156662300-f4f723b9-2538-4d1b-a14b-a5990b8fa0c8.jpeg)
+
+
 # 🏗 Scaffold-ETH
 
 > everything you need to build on Ethereum! 🚀
